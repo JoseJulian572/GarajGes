@@ -1,0 +1,121 @@
+<!-- ... existing code -->
+    function parseAmountString(str) {
+      if (!str) return 0;
+      let sanitized = String(str).replace(/"/g, '').trim();
+      if (sanitized.includes(',') && sanitized.includes('.')) {
+        sanitized = sanitized.replace(/\./g, '').replace(',', '.');
+      } else if (sanitized.includes(',')) {
+        sanitized = sanitized.replace(',', '.');
+      }
+      const val = parseFloat(sanitized);
+      return isNaN(val) ? 0 : val;
+    }
+
+    // Formato estándar sin punto de miles (ej: 1450,00)
+    function formatAmount(num) {
+      const val = parseFloat(num) || 0;
+      return val.toFixed(2).replace('.', ',');
+    }
+
+    // Formato con separador de miles exclusivo para saldos destacados (ej: 1.450,00)
+    function formatAmountWithThousands(num) {
+      const val = parseFloat(num) || 0;
+      const parts = val.toFixed(2).split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      return parts.join(',');
+    }
+
+    function appendToExistingCSV() {
+<!-- ... existing code -->
+    function updateDashboardStats() {
+      const totalOccupied = garageData.filter(s => s.occupied || s.isOccupied).length;
+
+      const saldoActual = paymentsLedger
+        .filter(p => p.estado === 'Pagado')
+        .reduce((sum, p) => sum + (parseFloat(p.cuota) || 0), 0);
+
+      const saldoEstimado = paymentsLedger
+        .reduce((sum, p) => sum + (parseFloat(p.cuota) || 0), 0);
+
+      const collected = garageData
+        .filter(s => (s.occupied || s.isOccupied) && (s.isPaid || s.paymentStatus === 'paid'))
+        .reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+
+      const expected = garageData
+        .filter(s => s.occupied || s.isOccupied)
+        .reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+
+      const pendingList = garageData.filter(s => (s.occupied || s.isOccupied) && !(s.isPaid || s.paymentStatus === 'paid'));
+      const pendingCount = pendingList.length;
+      const pendingAmount = pendingList.reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+
+      const elemSaldoActual = document.getElementById('stat-saldo-actual');
+      const elemSaldoEstimado = document.getElementById('stat-saldo-estimado');
+      // Uso exclusivo de punto de millar en S. Actual y S. Estimado
+      if (elemSaldoActual) elemSaldoActual.textContent = `${formatAmountWithThousands(saldoActual)}`;
+      if (elemSaldoEstimado) elemSaldoEstimado.textContent = `${formatAmountWithThousands(saldoEstimado)}`;
+
+      const elemOccupancy = document.getElementById('stat-occupancy');
+      const elemPendingCount = document.getElementById('stat-pending-count');
+      if (elemOccupancy) elemOccupancy.textContent = `${totalOccupied}`;
+      if (elemPendingCount) elemPendingCount.textContent = `${pendingCount}`;
+
+      const elemCollected = document.getElementById('stat-collected');
+      const elemPendingAmount = document.getElementById('stat-pending-amount');
+      const elemExpected = document.getElementById('stat-expected');
+      if (elemCollected) elemCollected.textContent = `${formatAmount(collected)}`;
+      if (elemPendingAmount) elemPendingAmount.textContent = `${formatAmount(pendingAmount)}`;
+      if (elemExpected) elemExpected.textContent = `Estimado: ${formatAmount(expected)}`;
+
+      updateCorridorWidget();
+    }
+
+    function updateCorridorWidget() {
+      const elemDate = document.getElementById('corridor-date');
+      if (elemDate) {
+        const today = new Date();
+        const options = { day: 'numeric', month: 'long', year: 'numeric' };
+        elemDate.textContent = today.toLocaleDateString('es-ES', options);
+      }
+
+      const collected = garageData
+        .filter(s => (s.occupied || s.isOccupied) && (s.isPaid || s.paymentStatus === 'paid'))
+        .reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+
+      const pendingAmount = garageData
+        .filter(s => (s.occupied || s.isOccupied) && !(s.isPaid || s.paymentStatus === 'paid'))
+        .reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+
+      const totalExpected = collected + pendingAmount;
+
+      const paidSegment = document.getElementById('donut-segment-paid');
+      const pendingSegment = document.getElementById('donut-segment-pending');
+      const percentageText = document.getElementById('donut-percentage-text');
+
+      if (paidSegment && pendingSegment) {
+        if (totalExpected > 0) {
+          const paidPct = Math.round((collected / totalExpected) * 100);
+          const pendingPct = 100 - paidPct;
+
+          paidSegment.setAttribute('stroke-dasharray', `${paidPct}, 100`);
+          pendingSegment.setAttribute('stroke-dasharray', `${pendingPct}, 100`);
+          pendingSegment.setAttribute('stroke-dashoffset', `-${paidPct}`);
+
+          if (percentageText) percentageText.textContent = `${paidPct}%`;
+        } else {
+          paidSegment.setAttribute('stroke-dasharray', `0, 100`);
+          pendingSegment.setAttribute('stroke-dasharray', `0, 100`);
+          if (percentageText) percentageText.textContent = `0%`;
+        }
+      }
+
+      const elemSaldoCorridor = document.getElementById('corridor-saldo-actual');
+      if (elemSaldoCorridor) {
+        const saldoActual = paymentsLedger
+          .filter(p => p.estado === 'Pagado')
+          .reduce((sum, p) => sum + (parseFloat(p.cuota) || 0), 0);
+        // Uso exclusivo de punto de millar en la cifra bajo el gráfico del plano
+        elemSaldoCorridor.textContent = `${formatAmountWithThousands(saldoActual)}`;
+      }
+    }
+<!-- ... existing code -->
