@@ -78,11 +78,11 @@
         <div class="w-full space-y-2">
           <div class="flex items-baseline justify-between gap-2">
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">S. Actual</span>
-            <span class="text-3xl font-extrabold text-emerald-400 font-mono tracking-tight" id="stat-saldo-actual">0</span>
+            <span class="text-3xl font-extrabold text-emerald-400 font-mono tracking-tight" id="stat-saldo-actual">0 €</span>
           </div>
           <div class="flex items-baseline justify-between gap-2 pt-2 border-t border-slate-800/80">
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">S. estimado</span>
-            <span class="text-2xl font-bold text-slate-100 font-mono tracking-tight" id="stat-saldo-estimado">0</span>
+            <span class="text-2xl font-bold text-slate-100 font-mono tracking-tight" id="stat-saldo-estimado">0 €</span>
           </div>
         </div>
       </div>
@@ -105,15 +105,15 @@
           <div class="flex items-center justify-between gap-2">
             <div>
               <span class="text-[10px] text-emerald-400 font-semibold block uppercase">Cobrado</span>
-              <span class="text-3xl font-extrabold text-emerald-400 font-mono tracking-tight" id="stat-collected">0</span>
+              <span class="text-3xl font-extrabold text-emerald-400 font-mono tracking-tight" id="stat-collected">0 €</span>
             </div>
             <div class="text-right">
               <span class="text-[10px] text-rose-400 font-semibold block uppercase">Pendiente</span>
-              <span class="text-3xl font-extrabold text-rose-400 font-mono tracking-tight" id="stat-pending-amount">0</span>
+              <span class="text-3xl font-extrabold text-rose-400 font-mono tracking-tight" id="stat-pending-amount">0 €</span>
             </div>
           </div>
         </div>
-        <p class="text-sm font-bold text-slate-300 pt-2 border-t border-slate-800/80 mt-2 font-mono" id="stat-expected">Estimado: 0</p>
+        <p class="text-sm font-bold text-slate-300 pt-2 border-t border-slate-800/80 mt-2 font-mono" id="stat-expected">Estimado: 0 €</p>
       </div>
 
     </div>
@@ -160,7 +160,7 @@
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
               <i data-lucide="map-pin" class="w-5 h-5 text-brand-400"></i> Plano en U Invertida (#0 a #23)
             </h2>
-            <p class="text-xs text-slate-400">Izquierda (#0 a #7), Superior (#8 a #15) y Derecha (#16 a #23).</p>
+            <p class="text-xs text-slate-400">Haz clic en cualquier plaza para ver opciones rápidas.</p>
           </div>
 
           <div class="flex items-center gap-2">
@@ -200,19 +200,7 @@
               </div>
 
               <div class="my-auto text-center space-y-4 w-full flex flex-col items-center py-4">
-                <div id="corridor-date" class="text-base sm:text-lg font-bold text-brand-400 capitalize bg-slate-900/90 px-5 py-1.5 rounded-full border border-brand-500/30 shadow-md"></div>
-
-                <div class="relative w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center my-1">
-                  <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                    <path class="text-slate-800" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path id="donut-segment-paid" class="text-emerald-500 transition-all duration-500 ease-out" stroke-width="4" stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path id="donut-segment-pending" class="text-rose-500 transition-all duration-500 ease-out" stroke-width="4" stroke-dasharray="0, 100" stroke-dashoffset="0" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  </svg>
-                  <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 font-bold">
-                    <span id="donut-percentage-text" class="text-lg sm:text-xl text-white font-extrabold">0%</span>
-                    <span class="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold">Cobrado</span>
-                  </div>
-                </div>
+                <div id="corridor-date" class="text-base sm:text-lg font-bold text-brand-400 capitalize bg-slate-900/90 px-5 py-1.5 rounded-full border border-brand-500/30 shadow-md">Garaje JJNH</div>
 
                 <div id="corridor-saldo-actual" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono tracking-tight bg-slate-900/90 px-6 py-2 rounded-2xl border border-emerald-500/30 shadow-lg">0 €</div>
               </div>
@@ -247,18 +235,22 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="handleImportClick(event)" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition" title="Importar plazas desde GitHub Gist">
+            <!-- Botón Importar CSV -->
+            <label class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition cursor-pointer" title="Importar plazas desde archivo CSV">
               <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i>
               <span>Importar plazas</span>
-            </button>
+              <input type="file" id="file-import-spots" accept=".csv" class="hidden" onchange="importSpotsCSV(event)">
+            </label>
             
-            <button onclick="handleExportClick('spots')" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition" title="Exportar plazas a GitHub Gist">
+            <!-- Botón Exportar CSV -->
+            <button onclick="handleExportClick('spots')" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition" title="Exportar plazas a archivo CSV">
               <i data-lucide="download" class="w-4 h-4 text-slate-400"></i>
               <span>Exportar plazas</span>
             </button>
 
             <div class="h-4 w-px bg-slate-800 mx-1"></div>
 
+            <!-- Filtros de Estado -->
             <button onclick="filterTableByStatus('all')" id="btn-filter-all" class="px-3 py-2 text-xs font-medium rounded-lg bg-brand-600 text-white transition">Todas</button>
             <button onclick="filterTableByStatus('pending')" id="btn-filter-pending" class="px-3 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-400 border border-slate-700 transition">Pendientes</button>
             <button onclick="filterTableByStatus('occupied')" id="btn-filter-occupied" class="px-3 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Ocupadas</button>
@@ -296,21 +288,24 @@
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
               <i data-lucide="receipt" class="w-5 h-5 text-emerald-400"></i> Registro de Pagos y Movimientos
             </h2>
-            <p class="text-xs text-slate-400">Historial de registros de cobro</p>
+            <p class="text-xs text-slate-400">Historial completo de cobros y gastos</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="procesoCierreMes()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg border border-emerald-500 shadow-md transition" title="Cierre de mes">
+            <button onclick="procesoCierreMes()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg border border-emerald-500 shadow-md transition" title="Generar cobros pendientes para el nuevo mes">
               <i data-lucide="calendar-check" class="w-4 h-4"></i>
               <span>Cierre de Mes</span>
             </button>
 
-            <button onclick="openPaymentModal()" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
-              <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i> + Movimiento
+            <button onclick="openPaymentModal()" class="px-3 py-2 text-xs font-medium bg-brand-600 hover:bg-brand-500 text-white rounded-lg flex items-center gap-1.5 shadow-md transition">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> + Nuevo Movimiento
             </button>
-            <button onclick="handleImportPaymentsClick(event)" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
+
+            <label class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition cursor-pointer">
               <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i> Importar Movimientos
-            </button>
+              <input type="file" id="file-import-payments" accept=".csv" class="hidden" onchange="importPaymentsCSV(event)">
+            </label>
+
             <button onclick="handleExportClick('payments')" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
               <i data-lucide="download" class="w-4 h-4 text-slate-400"></i> Exportar CSV
             </button>
@@ -338,6 +333,148 @@
     </section>
 
   </main>
+
+  <!-- MODAL EDITAR PLAZA / INQUILINO -->
+  <div id="modal-spot" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <h3 class="text-lg font-bold text-white" id="modal-spot-title">Editar Plaza</h3>
+        <button onclick="closeSpotModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-spot" onsubmit="saveSpotForm(event)" class="p-6 space-y-4">
+        <input type="hidden" id="edit-spot-id">
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Número de Plaza</label>
+            <input type="text" id="edit-spot-number" readonly class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-400 font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Estado Ocupación</label>
+            <select id="edit-spot-occupied" onchange="toggleOccupiedFields()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
+              <option value="false">Disponible (Libre)</option>
+              <option value="true">Ocupada</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="tenant-fields" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nombre Inquilino</label>
+              <input type="text" id="edit-tenant-name" placeholder="Juan Pérez" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Alias / Apodo</label>
+              <input type="text" id="edit-tenant-alias" placeholder="Plaza 5" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">NIF / DNI</label>
+              <input type="text" id="edit-tenant-nif" placeholder="12345678X" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Teléfono</label>
+              <input type="text" id="edit-tenant-phone" placeholder="600000000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Cuota (€)</label>
+              <input type="number" step="0.01" id="edit-spot-price" placeholder="80" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Matrícula</label>
+              <input type="text" id="edit-car-plate" placeholder="1234 ABC" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono uppercase">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Modelo Vehículo</label>
+              <input type="text" id="edit-car-model" placeholder="Seat Ibiza" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Estado de Pago del Mes</label>
+            <select id="edit-payment-status" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
+              <option value="paid">Pagado (Verde)</option>
+              <option value="pending">Pendiente (Rojo)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-2 pt-4 border-t border-slate-800">
+          <button type="button" onclick="closeSpotModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white">Cancelar</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold bg-brand-600 hover:bg-brand-500 text-white rounded-lg shadow-md">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL NUEVO MOVIMIENTO -->
+  <div id="modal-payment" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <h3 class="text-lg font-bold text-white">Nuevo Movimiento</h3>
+        <button onclick="closePaymentModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-payment" onsubmit="savePaymentForm(event)" class="p-6 space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Tipo</label>
+            <select id="mov-tipo" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
+              <option value="Ingreso">Ingreso (+)</option>
+              <option value="Gasto">Gasto (-)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Fecha</label>
+            <input type="date" id="mov-fecha" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Categoría</label>
+          <select id="mov-categoria" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
+            <option value="Alquiler">Alquiler Plaza</option>
+            <option value="Luz/Electricidad">Luz / Electricidad</option>
+            <option value="Mantenimiento">Mantenimiento / Reparaciones</option>
+            <option value="Seguro">Seguro</option>
+            <option value="Varios">Varios</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Concepto</label>
+          <input type="text" id="mov-concepto" placeholder="Ej: Cobro Plaza #5 - Marzo" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nombre / Pagador</label>
+            <input type="text" id="mov-nombre" placeholder="Nombre completo" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Importe (€)</label>
+            <input type="number" step="0.01" id="mov-importe" placeholder="80" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-2 pt-4 border-t border-slate-800">
+          <button type="button" onclick="closePaymentModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white">Cancelar</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow-md">Guardar Movimiento</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- MODAL CONFIGURACIÓN GITHUB GIST -->
   <div id="modal-config" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -402,6 +539,12 @@
         toast.classList.remove('hidden');
         setTimeout(() => toast.classList.add('hidden'), 3000);
       }
+    }
+
+    function saveLocalData() {
+      localStorage.setItem(STORAGE_KEY_SPOTS, JSON.stringify(garageData));
+      localStorage.setItem(STORAGE_KEY_PAYMENTS, JSON.stringify(paymentsLedger));
+      updateDashboardStats();
     }
 
     function openConfigModal() {
@@ -483,7 +626,6 @@
 
       showToast("Guardando cambios en la nube...", "info");
 
-      // Exportar plazas
       let csvPlazas = ["Plaza Interna;Plaza Visual;Ocupado;Nombre;Alias;NIF;Telefono;Matricula;Modelo;Cuota;Estado Pago;Fecha;Notas"];
       garageData.forEach(s => {
         csvPlazas.push([
@@ -494,7 +636,6 @@
       });
       await updateGistFile("plazas.csv", csvPlazas.join("\n"));
 
-      // Exportar movimientos
       let csvMov = ["Fecha;Tipo;Categoria;Concepto;Nombre;Importe;Estado"];
       paymentsLedger.forEach(p => {
         csvMov.push([
@@ -505,11 +646,6 @@
       await updateGistFile("movimientos.csv", csvMov.join("\n"));
 
       showToast("¡Datos guardados con éxito en GitHub!", "success");
-    }
-
-    function handleImportClick(event) {
-      if (event) event.preventDefault();
-      showToast("Seleccione o importe desde el panel de sincronización", "info");
     }
 
     function handleExportClick(type) {
@@ -532,17 +668,200 @@
       }
     }
 
-    function handleImportPaymentsClick(event) {
-      if (event) event.preventDefault();
-      showToast("Importación de movimientos lista", "info");
+    function importSpotsCSV(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const text = evt.target.result;
+        const lines = text.split('\n');
+        lines.slice(1).forEach((line, idx) => {
+          if (!line.trim() || idx >= TOTAL_SPOTS) return;
+          const cols = line.split(';');
+          if (cols.length >= 2) {
+            garageData[idx] = {
+              id: idx,
+              spotNumber: cols[1] || `${idx}`,
+              occupied: (cols[2] || '').toUpperCase() === 'SI',
+              tenantName: cols[3] || '',
+              tenantAlias: cols[4] || '',
+              tenantNif: cols[5] || '',
+              tenantPhone: cols[6] || '',
+              carPlate: cols[7] || '',
+              carModel: cols[8] || '',
+              price: parseFloat(cols[9]) || 80,
+              paymentStatus: (cols[10] || '').toLowerCase() === 'pagado' ? 'paid' : 'pending',
+              startDate: cols[11] || '',
+              notes: cols[12] || ''
+            };
+          }
+        });
+        saveLocalData();
+        renderGrid();
+        renderTable();
+        showToast("Plazas importadas con éxito", "success");
+      };
+      reader.readAsText(file);
     }
 
-    function procesoCierreMes() {
-      showToast("Cierre de mes realizado", "success");
+    function importPaymentsCSV(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const text = evt.target.result;
+        const lines = text.split('\n');
+        paymentsLedger = [];
+        lines.slice(1).forEach(line => {
+          if (!line.trim()) return;
+          const cols = line.split(';');
+          if (cols.length >= 4) {
+            paymentsLedger.push({
+              fecha: cols[0] || new Date().toISOString().split('T')[0],
+              tipo: cols[1] || 'Ingreso',
+              categoria: cols[2] || 'Alquiler',
+              concepto: cols[3] || '',
+              nombreCompleto: cols[4] || '',
+              cuota: parseFloat(cols[5]) || 0,
+              estado: cols[6] || 'Pagado'
+            });
+          }
+        });
+        saveLocalData();
+        renderPaymentsLedger();
+        showToast("Movimientos importados con éxito", "success");
+      };
+      reader.readAsText(file);
+    }
+
+    function toggleSpotPaymentStatus(spotId) {
+      const spot = garageData.find(s => s.id === spotId);
+      if (spot && spot.occupied) {
+        spot.paymentStatus = spot.paymentStatus === 'paid' ? 'pending' : 'paid';
+        if (spot.paymentStatus === 'paid') {
+          paymentsLedger.unshift({
+            fecha: new Date().toISOString().split('T')[0],
+            tipo: 'Ingreso',
+            categoria: 'Alquiler',
+            concepto: `Cobro Plaza #${spot.spotNumber}`,
+            nombreCompleto: spot.tenantName || 'Inquilino',
+            cuota: spot.price || 80,
+            estado: 'Pagado'
+          });
+        }
+        saveLocalData();
+        renderGrid();
+        renderTable();
+        renderPaymentsLedger();
+        showToast(`Plaza #${spot.spotNumber}: Pago actualizado`, "success");
+      }
+    }
+
+    function openSpotModal(spotId) {
+      const spot = garageData.find(s => s.id === spotId);
+      if (!spot) return;
+
+      document.getElementById('edit-spot-id').value = spot.id;
+      document.getElementById('edit-spot-number').value = spot.spotNumber;
+      document.getElementById('edit-spot-occupied').value = spot.occupied ? "true" : "false";
+      document.getElementById('edit-tenant-name').value = spot.tenantName || '';
+      document.getElementById('edit-tenant-alias').value = spot.tenantAlias || '';
+      document.getElementById('edit-tenant-nif').value = spot.tenantNif || '';
+      document.getElementById('edit-tenant-phone').value = spot.tenantPhone || '';
+      document.getElementById('edit-spot-price').value = spot.price || 80;
+      document.getElementById('edit-car-plate').value = spot.carPlate || '';
+      document.getElementById('edit-car-model').value = spot.carModel || '';
+      document.getElementById('edit-payment-status').value = spot.paymentStatus || 'pending';
+
+      toggleOccupiedFields();
+      document.getElementById('modal-spot').classList.remove('hidden');
+    }
+
+    function closeSpotModal() {
+      document.getElementById('modal-spot').classList.add('hidden');
+    }
+
+    function toggleOccupiedFields() {
+      const isOcc = document.getElementById('edit-spot-occupied').value === "true";
+      document.getElementById('tenant-fields').classList.toggle('hidden', !isOcc);
+    }
+
+    function saveSpotForm(e) {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('edit-spot-id').value);
+      const spot = garageData.find(s => s.id === id);
+
+      if (spot) {
+        spot.occupied = document.getElementById('edit-spot-occupied').value === "true";
+        if (spot.occupied) {
+          spot.tenantName = document.getElementById('edit-tenant-name').value;
+          spot.tenantAlias = document.getElementById('edit-tenant-alias').value;
+          spot.tenantNif = document.getElementById('edit-tenant-nif').value;
+          spot.tenantPhone = document.getElementById('edit-tenant-phone').value;
+          spot.price = parseFloat(document.getElementById('edit-spot-price').value) || 80;
+          spot.carPlate = document.getElementById('edit-car-plate').value;
+          spot.carModel = document.getElementById('edit-car-model').value;
+          spot.paymentStatus = document.getElementById('edit-payment-status').value;
+        } else {
+          spot.tenantName = '';
+          spot.tenantAlias = '';
+          spot.tenantNif = '';
+          spot.tenantPhone = '';
+          spot.carPlate = '';
+          spot.carModel = '';
+          spot.paymentStatus = 'pending';
+        }
+
+        saveLocalData();
+        renderGrid();
+        renderTable();
+        closeSpotModal();
+        showToast("Plaza guardada con éxito", "success");
+      }
     }
 
     function openPaymentModal() {
-      showToast("Formulario de nuevo movimiento", "info");
+      document.getElementById('mov-fecha').value = new Date().toISOString().split('T')[0];
+      document.getElementById('mov-concepto').value = '';
+      document.getElementById('mov-nombre').value = '';
+      document.getElementById('mov-importe').value = '';
+      document.getElementById('modal-payment').classList.remove('hidden');
+    }
+
+    function closePaymentModal() {
+      document.getElementById('modal-payment').classList.add('hidden');
+    }
+
+    function savePaymentForm(e) {
+      e.preventDefault();
+      const nuevo = {
+        fecha: document.getElementById('mov-fecha').value,
+        tipo: document.getElementById('mov-tipo').value,
+        categoria: document.getElementById('mov-categoria').value,
+        concepto: document.getElementById('mov-concepto').value,
+        nombreCompleto: document.getElementById('mov-nombre').value,
+        cuota: parseFloat(document.getElementById('mov-importe').value) || 0,
+        estado: 'Pagado'
+      };
+      paymentsLedger.unshift(nuevo);
+      saveLocalData();
+      renderPaymentsLedger();
+      closePaymentModal();
+      showToast("Movimiento registrado", "success");
+    }
+
+    function procesoCierreMes() {
+      let creados = 0;
+      garageData.forEach(spot => {
+        if (spot.occupied) {
+          spot.paymentStatus = 'pending';
+          creados++;
+        }
+      });
+      saveLocalData();
+      renderGrid();
+      renderTable();
+      showToast(`Cierre realizado: ${creados} cobros marcados como pendientes`, "success");
     }
 
     function filterTableByStatus(status) {
@@ -597,14 +916,25 @@
         const card = document.createElement('div');
         const isOcc = spot.occupied;
         const isP = spot.paymentStatus === 'paid';
+        const filterVal = document.getElementById('map-filter')?.value || 'all';
+
+        if (filterVal === 'free' && isOcc) return;
+        if (filterVal === 'paid' && (!isOcc || !isP)) return;
+        if (filterVal === 'pending' && (!isOcc || isP)) return;
+
         card.className = `p-3 rounded-xl border transition-all-200 cursor-pointer ${
-          !isOcc ? 'bg-slate-900/60 border-slate-800' : (isP ? 'bg-emerald-950/20 border-emerald-800/60' : 'bg-rose-950/20 border-rose-800/60')
+          !isOcc ? 'bg-slate-900/60 border-slate-800 hover:border-slate-700' : (isP ? 'bg-emerald-950/20 border-emerald-800/60 hover:border-emerald-500' : 'bg-rose-950/20 border-rose-800/60 hover:border-rose-500')
         }`;
-        card.innerHTML = `<div class="flex justify-between font-mono font-bold text-xs mb-1">
-          <span>#${spot.spotNumber}</span>
-          <span class="w-2.5 h-2.5 rounded-full ${!isOcc ? 'bg-slate-600' : (isP ? 'bg-emerald-500' : 'bg-rose-500')}"></span>
-        </div>
-        <p class="text-xs truncate font-bold">${isOcc ? (spot.tenantName || 'Ocupada') : 'Disponible'}</p>`;
+        card.onclick = () => openSpotModal(spot.id);
+
+        card.innerHTML = `
+          <div class="flex justify-between font-mono font-bold text-xs mb-1">
+            <span>#${spot.spotNumber}</span>
+            <span class="w-2.5 h-2.5 rounded-full ${!isOcc ? 'bg-slate-600' : (isP ? 'bg-emerald-500' : 'bg-rose-500')}"></span>
+          </div>
+          <p class="text-xs truncate font-bold">${isOcc ? (spot.tenantName || 'Ocupada') : 'Disponible'}</p>
+          ${isOcc ? `<p class="text-[10px] text-slate-400 font-mono mt-1">${spot.price || 80} €</p>` : ''}
+        `;
         
         if (spot.id <= 7) leftContainer.appendChild(card);
         else if (spot.id <= 15) topContainer.appendChild(card);
@@ -612,6 +942,7 @@
       });
 
       updateDashboardStats();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     function renderTable() {
@@ -637,38 +968,69 @@
         tr.className = "hover:bg-slate-800/50";
         tr.innerHTML = `
           <td class="px-4 py-3 font-mono font-bold">#${spot.spotNumber}</td>
-          <td class="px-4 py-3 text-xs font-semibold">${spot.occupied ? 'Ocupado' : 'Libre'}</td>
+          <td class="px-4 py-3 text-xs font-semibold">
+            <span class="px-2 py-1 rounded-full ${spot.occupied ? 'bg-brand-950 text-brand-400 border border-brand-800' : 'bg-slate-800 text-slate-400'}">
+              ${spot.occupied ? 'Ocupado' : 'Libre'}
+            </span>
+          </td>
           <td class="px-4 py-3">${spot.tenantName || '-'}</td>
           <td class="px-4 py-3 font-mono text-xs">${spot.tenantNif || '-'}</td>
           <td class="px-4 py-3 font-mono text-xs">${spot.carPlate || '-'}</td>
           <td class="px-4 py-3">${spot.tenantPhone || '-'}</td>
           <td class="px-4 py-3 text-right font-mono">${formatAmountWithThousands(spot.price)} €</td>
-          <td class="px-4 py-3 text-center text-xs">${spot.paymentStatus === 'paid' ? 'Pagado' : 'Pendiente'}</td>
-          <td class="px-4 py-3 text-right">--</td>
+          <td class="px-4 py-3 text-center text-xs">
+            ${spot.occupied ? 
+              `<button onclick="toggleSpotPaymentStatus(${spot.id})" class="px-2.5 py-1 rounded-lg text-xs font-semibold border ${spot.paymentStatus === 'paid' ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-rose-950 text-rose-400 border-rose-800'}">
+                ${spot.paymentStatus === 'paid' ? 'Pagado ✔' : 'Pendiente ✖'}
+              </button>` : '-'
+            }
+          </td>
+          <td class="px-4 py-3 text-right">
+            <button onclick="openSpotModal(${spot.id})" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition" title="Editar plaza">
+              <i data-lucide="edit-3" class="w-4 h-4"></i>
+            </button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
+      if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     function renderPaymentsLedger() {
       const tbody = document.getElementById('payments-table-body');
       if (!tbody) return;
       tbody.innerHTML = '';
-      paymentsLedger.forEach(p => {
+      paymentsLedger.forEach((p, idx) => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-800/50";
         tr.innerHTML = `
           <td class="px-4 py-3 font-mono text-xs">${p.fecha || '-'}</td>
-          <td class="px-4 py-3">${p.tipo || 'Ingreso'}</td>
-          <td class="px-4 py-3">${p.categoria || 'Alquiler'}</td>
+          <td class="px-4 py-3 text-xs font-bold ${p.tipo === 'Gasto' ? 'text-rose-400' : 'text-emerald-400'}">${p.tipo || 'Ingreso'}</td>
+          <td class="px-4 py-3 text-xs">${p.categoria || 'Alquiler'}</td>
           <td class="px-4 py-3">${p.concepto || '-'}</td>
           <td class="px-4 py-3">${p.nombreCompleto || '-'}</td>
-          <td class="px-4 py-3 text-right font-mono">${formatAmountWithThousands(p.cuota)} €</td>
-          <td class="px-4 py-3 text-center text-xs">${p.estado || 'Pagado'}</td>
-          <td class="px-4 py-3 text-right">--</td>
+          <td class="px-4 py-3 text-right font-mono font-bold ${p.tipo === 'Gasto' ? 'text-rose-400' : 'text-emerald-400'}">
+            ${p.tipo === 'Gasto' ? '-' : '+'}${formatAmountWithThousands(p.cuota)} €
+          </td>
+          <td class="px-4 py-3 text-center text-xs">
+            <span class="px-2 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-semibold">${p.estado || 'Pagado'}</span>
+          </td>
+          <td class="px-4 py-3 text-right">
+            <button onclick="deletePayment(${idx})" class="p-1.5 bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-400 rounded-lg border border-slate-700 transition" title="Eliminar registro">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function deletePayment(index) {
+      paymentsLedger.splice(index, 1);
+      saveLocalData();
+      renderPaymentsLedger();
+      showToast("Movimiento eliminado", "info");
     }
 
     function updateDashboardStats() {
