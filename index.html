@@ -1,1167 +1,4 @@
-<!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-900 text-slate-100">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Garaje - Garaje JJNH</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#eff6ff',
-              100: '#dbeafe',
-              500: '#3b82f6',
-              600: '#2563eb',
-              700: '#1d4ed8',
-              800: '#1e40af',
-              900: '#1e3a8a',
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    .transition-all-200 { transition: all 0.2s ease-in-out; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #475569; }
-  </style>
-</head>
-<body class="h-full flex flex-col font-sans bg-slate-950 text-slate-100 antialiased overflow-x-hidden">
-
-  <!-- ENCABEZADO / NAVBAR -->
-  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-30 shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="bg-brand-600 p-2.5 rounded-xl shadow-md shadow-brand-600/30 flex items-center justify-center text-white">
-          <i data-lucide="warehouse" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            Garaje JJNH
-          </h1>
-        </div>
-      </div>
-
-      <!-- Acciones globales -->
-      <div class="flex items-center space-x-2 sm:space-x-3">
-        <button onclick="openConfigModal()" class="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 shadow-md transition" title="Configurar Token y Gist ID de GitHub">
-          <i data-lucide="settings" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">Config Nube</span>
-        </button>
-
-        <button onclick="handleSalirSesion()" class="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold bg-rose-700 hover:bg-rose-600 text-white rounded-lg border border-rose-500 shadow-md transition" title="Guardar cambios y salir">
-          <i data-lucide="log-out" class="w-4 h-4"></i>
-          <span>Salir</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-
-    <!-- KPI / TARJETAS DE ESTADÍSTICAS -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      
-      <!-- CUADRO 1: SALDOS -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex items-center justify-between">
-        <div class="w-full space-y-2">
-          <div class="flex items-baseline justify-between gap-2">
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">S. Actual</span>
-            <span class="text-3xl font-extrabold text-emerald-400 font-mono tracking-tight" id="stat-saldo-actual">0 €</span>
-          </div>
-          <div class="flex items-baseline justify-between gap-2 pt-2 border-t border-slate-800/80">
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">S. estimado</span>
-            <span class="text-2xl font-bold text-slate-100 font-mono tracking-tight" id="stat-saldo-estimado">0 €</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- CUADRO 2: OCUPADAS / PENDIENTES DE PAGO -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-center space-y-3">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">OCUPADAS</span>
-          <span class="text-3xl font-extrabold text-emerald-400 font-mono tracking-tight" id="stat-ocupadas-val">0 / 24</span>
-        </div>
-        <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
-          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">PENDIENTES DE PAGO</span>
-          <span class="text-3xl font-extrabold text-rose-400 font-mono tracking-tight" id="stat-pendientes-val">0</span>
-        </div>
-      </div>
-
-      <!-- CUADRO 3: RECAUDADO ESTE MES -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-        <div class="space-y-2">
-          <div class="flex items-center justify-between gap-2">
-            <div>
-              <span class="text-[10px] text-emerald-400 font-semibold block uppercase">Cobrado</span>
-              <span class="text-3xl font-extrabold text-emerald-400 font-mono tracking-tight" id="stat-collected">0 €</span>
-            </div>
-            <div class="text-right">
-              <span class="text-[10px] text-rose-400 font-semibold block uppercase">Pendiente</span>
-              <span class="text-3xl font-extrabold text-rose-400 font-mono tracking-tight" id="stat-pending-amount">0 €</span>
-            </div>
-          </div>
-        </div>
-        <p class="text-sm font-bold text-slate-300 pt-2 border-t border-slate-800/80 mt-2 font-mono" id="stat-expected">Estimado: 0 €</p>
-      </div>
-
-    </div>
-
-    <!-- PESTAÑAS DE NAVEGACIÓN -->
-    <div class="border-b border-slate-800 flex items-center justify-between gap-4">
-      <nav class="flex space-x-2 sm:space-x-4" aria-label="Tabs">
-        <button id="tab-btn-map" onclick="switchTab('map')" class="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-brand-500 text-brand-400 flex items-center gap-2 transition">
-          <i data-lucide="layout-grid" class="w-4 h-4"></i>
-          Plano del Garaje
-        </button>
-        <button id="tab-btn-list" onclick="switchTab('list')" class="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700 flex items-center gap-2 transition">
-          <i data-lucide="list-table" class="w-4 h-4"></i>
-          Inquilinos y Cobros
-        </button>
-        <button id="tab-btn-payments" onclick="switchTab('payments')" class="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700 flex items-center gap-2 transition">
-          <i data-lucide="receipt" class="w-4 h-4"></i>
-          Registro de Pagos
-        </button>
-      </nav>
-
-      <div id="map-legend" class="hidden sm:flex items-center space-x-4 text-xs text-slate-400 pr-2">
-        <div class="flex items-center space-x-1.5">
-          <span class="w-3 h-3 rounded-full bg-slate-600 border border-slate-500 inline-block"></span>
-          <span>Disponible (Gris)</span>
-        </div>
-        <div class="flex items-center space-x-1.5">
-          <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block shadow-sm shadow-emerald-500/50"></span>
-          <span>Pagado (Verde)</span>
-        </div>
-        <div class="flex items-center space-x-1.5">
-          <span class="w-3 h-3 rounded-full bg-rose-500 inline-block shadow-sm shadow-rose-500/50"></span>
-          <span>Pendiente (Rojo)</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- VISTA 1: PLANO DEL GARAJE -->
-    <section id="view-map" class="space-y-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-        
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div>
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-              <i data-lucide="map-pin" class="w-5 h-5 text-brand-400"></i> Plano en U Invertida (#0 a #23)
-            </h2>
-            <p class="text-xs text-slate-400">Haz clic en cualquier plaza para ver opciones rápidas.</p>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-400 font-medium">Filtro rápido:</span>
-            <select id="map-filter" onchange="renderGrid()" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-brand-500">
-              <option value="all">Todas las plazas (24)</option>
-              <option value="free">Disponibles (Gris)</option>
-              <option value="paid">Pagadas (Verde)</option>
-              <option value="pending">Pendientes (Rojo)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="bg-slate-950/80 p-4 sm:p-6 rounded-2xl border border-slate-800/80 space-y-4">
-          <div class="space-y-2">
-            <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest text-center flex items-center justify-center gap-2">
-              <div class="h-px bg-slate-800 flex-1"></div>
-              <span>Zona Superior (Plazas #8 a #15)</span>
-              <div class="h-px bg-slate-800 flex-1"></div>
-            </div>
-            <div id="grid-top" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2.5"></div>
-          </div>
-
-          <div class="grid grid-cols-12 gap-3 min-h-[420px] items-stretch">
-            <div class="col-span-12 md:col-span-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 flex flex-col justify-between">
-              <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 text-center border-b border-slate-800 pb-1">
-                Lado Izquierdo (#0 a #7 ↑)
-              </div>
-              <div id="grid-left" class="grid grid-cols-2 md:grid-cols-1 gap-2 flex-1"></div>
-            </div>
-
-            <div class="col-span-12 md:col-span-6 border-2 border-dashed border-slate-800/80 bg-slate-950/40 rounded-xl p-4 flex flex-col justify-between items-center relative overflow-hidden my-2 md:my-0 min-h-[160px]">
-              <div class="w-full text-center py-2 border-b border-slate-800/60 text-slate-500 text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-2">
-                <i data-lucide="arrow-up" class="w-4 h-4 text-brand-500"></i>
-                Zona de Giro y Fondo
-                <i data-lucide="arrow-up" class="w-4 h-4 text-brand-500"></i>
-              </div>
-
-              <div class="my-auto text-center space-y-4 w-full flex flex-col items-center py-4">
-                <div id="corridor-date" class="text-base sm:text-lg font-bold text-brand-400 capitalize bg-slate-900/90 px-5 py-1.5 rounded-full border border-brand-500/30 shadow-md">Garaje JJNH</div>
-
-                <div id="corridor-saldo-actual" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono tracking-tight bg-slate-900/90 px-6 py-2 rounded-2xl border border-emerald-500/30 shadow-lg">0 €</div>
-              </div>
-
-              <div class="w-full text-center py-2 border-t border-slate-800/60 text-slate-500 text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-2">
-                <i data-lucide="arrow-down" class="w-4 h-4 text-brand-500"></i>
-                Entrada / Salida Garaje
-                <i data-lucide="arrow-down" class="w-4 h-4 text-brand-500"></i>
-              </div>
-            </div>
-
-            <div class="col-span-12 md:col-span-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 flex flex-col justify-between">
-              <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 text-center border-b border-slate-800 pb-1">
-                Lado Derecho (#16 a #23 ↓)
-              </div>
-              <div id="grid-right" class="grid grid-cols-2 md:grid-cols-1 gap-2 flex-1"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VISTA 2: LISTADO DE INQUILINOS -->
-    <section id="view-list" class="hidden space-y-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-        
-        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-          <div class="relative flex-1">
-            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
-            <input type="text" id="table-search" oninput="renderTable()" placeholder="Buscar por plaza, nombre, alias, NIF, matrícula o teléfono..." 
-                   class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition">
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-          <button onclick="procesoCierreMes()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg border border-emerald-500 shadow-md transition" title="Generar cobros pendientes para el nuevo mes">
-            <i data-lucide="calendar-check" class="w-4 h-4"></i>
-            <span>Cierre de Mes</span>
-          </button>
-
-          <button onclick="openPaymentModal()" class="px-3 py-2 text-xs font-medium bg-brand-600 hover:bg-brand-500 text-white rounded-lg flex items-center gap-1.5 shadow-md transition">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i> + Nuevo Movimiento
-          </button>
-
-          <!-- Botón Guardar en diario.csv de GitHub -->
-          <button onclick="exportToDiarioCSV()" class="px-3 py-2 text-xs font-medium bg-emerald-800 hover:bg-emerald-700 text-white rounded-lg border border-emerald-600 flex items-center gap-1.5 transition" title="Guardar movimientos en diario.csv en GitHub">
-            <i data-lucide="cloud-upload" class="w-4 h-4 text-emerald-300"></i> Guardar Diario (GitHub)
-          </button>
-
-          <label class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition cursor-pointer" title="Importar desde archivo local">
-            <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i> Importar Local
-            <input type="file" id="file-import-payments" accept=".csv" class="hidden" onchange="importPaymentsCSV(event)">
-          </label>
-
-          <button onclick="handleExportClick('payments')" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
-            <i data-lucide="download" class="w-4 h-4 text-slate-400"></i> Exportar Local
-          </button>
-        </div>
-      </div>
-
-      <!-- FILTRO DE FECHAS PARA HISTÓRICO DE GITHUB -->
-      <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-wrap items-center gap-3">
-        <div class="flex items-center gap-2">
-          <i data-lucide="cloud-download" class="w-4 h-4 text-brand-400"></i>
-          <span class="text-xs font-semibold text-slate-300">Importar de historico.csv (GitHub):</span>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span class="text-xs text-slate-500">Desde:</span>
-          <input type="date" id="filter-date-start" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span class="text-xs text-slate-500">Hasta:</span>
-          <input type="date" id="filter-date-end" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-        </div>
-        <button onclick="importFromHistoricoCSV()" class="px-3 py-1 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1" title="Descargar e importar movimientos del histórico en GitHub en el rango de fechas">
-          <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> Cargar del Histórico
-        </button>
-        <button onclick="clearDateFilter()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-semibold rounded-lg transition">
-          Limpiar Fechas
-        </button>
-      </div>
-
-      <div class="overflow-x-auto rounded-xl border border-slate-800">
-          <table class="w-full text-left text-sm text-slate-300">
-            <thead class="bg-slate-950 text-xs uppercase font-semibold text-slate-400 border-b border-slate-800">
-              <tr>
-                <th class="px-4 py-3">Plaza</th>
-                <th class="px-4 py-3">Estado</th>
-                <th class="px-4 py-3">Inquilino / Alias</th>
-                <th class="px-4 py-3">NIF / DNI</th>
-                <th class="px-4 py-3">Vehículo</th>
-                <th class="px-4 py-3">Teléfono</th>
-                <th class="px-4 py-3 text-right">Cuota (€)</th>
-                <th class="px-4 py-3 text-center">Estado Pago</th>
-                <th class="px-4 py-3 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="table-body" class="divide-y divide-slate-800/60 bg-slate-900/50"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- VISTA 3: REGISTRO HISTÓRICO DE PAGOS -->
-    <section id="view-payments" class="hidden space-y-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-        
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          <div>
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-              <i data-lucide="receipt" class="w-5 h-5 text-emerald-400"></i> Registro de Pagos y Movimientos
-            </h2>
-            <p class="text-xs text-slate-400">Historial completo de cobros y gastos</p>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <button onclick="procesoCierreMes()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg border border-emerald-500 shadow-md transition" title="Generar cobros pendientes para el nuevo mes">
-              <i data-lucide="calendar-check" class="w-4 h-4"></i>
-              <span>Cierre de Mes</span>
-            </button>
-
-            <button onclick="openPaymentModal()" class="px-3 py-2 text-xs font-medium bg-brand-600 hover:bg-brand-500 text-white rounded-lg flex items-center gap-1.5 shadow-md transition">
-              <i data-lucide="plus-circle" class="w-4 h-4"></i> + Nuevo Movimiento
-            </button>
-
-            <label class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition cursor-pointer">
-              <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i> Importar Movimientos
-              <input type="file" id="file-import-payments" accept=".csv" class="hidden" onchange="importPaymentsCSV(event)">
-            </label>
-
-            <button onclick="handleExportClick('payments')" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
-              <i data-lucide="download" class="w-4 h-4 text-slate-400"></i> Exportar CSV
-            </button>
-          </div>
-        </div>
-
-        <!-- FILTRO DE FECHAS PARA HISTÓRICO -->
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-2">
-            <i data-lucide="calendar" class="w-4 h-4 text-brand-400"></i>
-            <span class="text-xs font-semibold text-slate-300">Filtrar Histórico:</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs text-slate-500">Desde:</span>
-            <input type="date" id="filter-date-start" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs text-slate-500">Hasta:</span>
-            <input type="date" id="filter-date-end" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
-          </div>
-          <button onclick="renderPaymentsLedger()" class="px-3 py-1 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1">
-            <i data-lucide="filter" class="w-3.5 h-3.5"></i> Filtrar
-          </button>
-          <button onclick="clearDateFilter()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-semibold rounded-lg transition">
-            Limpiar
-          </button>
-        </div>
-
-        <div class="overflow-x-auto rounded-xl border border-slate-800">
-          <table class="w-full text-left text-sm text-slate-300">
-            <thead class="bg-slate-950 text-xs uppercase font-semibold text-slate-400 border-b border-slate-800">
-              <tr>
-                <th class="px-4 py-3">Fecha</th>
-                <th class="px-4 py-3">Tipo</th>
-                <th class="px-4 py-3">Categoría</th>
-                <th class="px-4 py-3">Concepto</th>
-                <th class="px-4 py-3">Nombre Completo</th>
-                <th class="px-4 py-3 text-right">Importe (€)</th>
-                <th class="px-4 py-3 text-center">Estado del Pago</th>
-                <th class="px-4 py-3 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="payments-table-body" class="divide-y divide-slate-800/60 bg-slate-900/50"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- MODAL EDITAR PLAZA / INQUILINO -->
-  <div id="modal-spot" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
-        <h3 class="text-lg font-bold text-white" id="modal-spot-title">Editar Plaza</h3>
-        <button onclick="closeSpotModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <form id="form-spot" onsubmit="saveSpotForm(event)" class="p-6 space-y-4">
-        <input type="hidden" id="edit-spot-id">
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Número de Plaza</label>
-            <input type="text" id="edit-spot-number" readonly class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-400 font-mono">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Estado Ocupación</label>
-            <select id="edit-spot-occupied" onchange="toggleOccupiedFields()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-              <option value="false">Disponible (Libre)</option>
-              <option value="true">Ocupada</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="tenant-fields" class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nombre Inquilino</label>
-              <input type="text" id="edit-tenant-name" placeholder="Juan Pérez" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Alias / Apodo</label>
-              <input type="text" id="edit-tenant-alias" placeholder="Plaza 5" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">NIF / DNI</label>
-              <input type="text" id="edit-tenant-nif" placeholder="12345678X" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Teléfono</label>
-              <input type="text" id="edit-tenant-phone" placeholder="600000000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Cuota (€)</label>
-              <input type="number" step="0.01" id="edit-spot-price" placeholder="80" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Matrícula</label>
-              <input type="text" id="edit-car-plate" placeholder="1234 ABC" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono uppercase">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Modelo Vehículo</label>
-              <input type="text" id="edit-car-model" placeholder="Seat Ibiza" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Estado de Pago del Mes</label>
-            <select id="edit-payment-status" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-              <option value="paid">Pagado (Verde)</option>
-              <option value="pending">Pendiente (Rojo)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-end space-x-2 pt-4 border-t border-slate-800">
-          <button type="button" onclick="closeSpotModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white">Cancelar</button>
-          <button type="submit" class="px-5 py-2 text-xs font-bold bg-brand-600 hover:bg-brand-500 text-white rounded-lg shadow-md">Guardar Cambios</button>
-        </div>
-      </form>
-    </div>
-  <!-- MODAL NUEVO / EDITAR MOVIMIENTO -->
-  <div id="modal-payment" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
-        <h3 class="text-lg font-bold text-white" id="modal-payment-title">Nuevo Movimiento</h3>
-        <button onclick="closePaymentModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <form id="form-payment" onsubmit="savePaymentForm(event)" class="p-6 space-y-4">
-        <input type="hidden" id="edit-payment-index" value="-1">
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Tipo</label>
-            <select id="mov-tipo" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-              <option value="Ingreso">Ingreso (+)</option>
-              <option value="Gasto">Gasto (-)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Fecha</label>
-            <input type="date" id="mov-fecha" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Categoría</label>
-          <select id="mov-categoria" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-            <option value="Alquiler">Alquiler Plaza</option>
-            <option value="Luz/Electricidad">Luz / Electricidad</option>
-            <option value="Mantenimiento">Mantenimiento / Reparaciones</option>
-            <option value="Seguro">Seguro</option>
-            <option value="Varios">Varios</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Concepto</label>
-          <input type="text" id="mov-concepto" placeholder="Ej: Cobro Plaza #5 - Marzo" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nombre / Pagador</label>
-            <input type="text" id="mov-nombre" placeholder="Nombre completo" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Importe (€)</label>
-            <input type="number" step="0.01" id="mov-importe" placeholder="80" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono">
-          </div>
-        </div>
-
-        <div class="flex items-center justify-end space-x-2 pt-4 border-t border-slate-800">
-          <button type="button" onclick="closePaymentModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white">Cancelar</button>
-          <button type="submit" class="px-5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow-md">Guardar Movimiento</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL CONFIGURACIÓN GITHUB GIST -->
-  <div id="modal-config" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
-        <h3 class="text-lg font-bold text-white">Sincronización GitHub Gist</h3>
-        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="p-6 space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Personal Access Token (GitHub)</label>
-          <input type="password" id="input-github-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono">
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Gist ID</label>
-          <input type="text" id="input-github-gist-id" placeholder="ID del Gist" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono">
-        </div>
-
-        <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-800">
-          <button type="button" onclick="closeConfigModal()" class="px-4 py-2 text-xs font-medium text-slate-400">Cancelar</button>
-          <button type="button" onclick="saveGitHubConfig()" class="px-5 py-2 text-xs font-bold bg-brand-600 hover:bg-brand-500 text-white rounded-lg">Guardar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TOAST DE NOTIFICACIONES -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden max-w-xs bg-slate-800 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 flex items-center space-x-3 transition-all duration-300">
-    <i data-lucide="check-circle" id="toast-icon" class="w-5 h-5 text-emerald-400"></i>
-    <p class="text-xs font-medium" id="toast-message">Operación realizada con éxito</p>
-  </div>
-
-  <script>
-    const TOTAL_SPOTS = 24;
-    const STORAGE_KEY_SPOTS = 'garage_management_24_spots_v3';
-    const STORAGE_KEY_PAYMENTS = 'garage_management_payments_ledger_v1';
-    
-    const STORAGE_KEY_GH_TOKEN = 'garage_gh_token';
-    const STORAGE_KEY_GH_GIST_ID = 'garage_gh_gist_id';
-
-    let garageData = [];
-    let paymentsLedger = [];
-    let currentFilterStatus = 'all';
-
-    function formatAmountWithThousands(num) {
-      const val = parseFloat(num) || 0;
-      const formatted = val.toFixed(2).replace('.', ',');
-      const parts = formatted.split(',');
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      return parts.join(',');
-    }
-
-    function showToast(msg, type = "info") {
-      const toast = document.getElementById('toast');
-      const messageEl = document.getElementById('toast-message');
-      if (toast && messageEl) {
-        messageEl.textContent = msg;
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 3000);
-      }
-    }
-
-    function saveLocalData() {
-      localStorage.setItem(STORAGE_KEY_SPOTS, JSON.stringify(garageData));
-      localStorage.setItem(STORAGE_KEY_PAYMENTS, JSON.stringify(paymentsLedger));
-      updateDashboardStats();
-    }
-
-    function openConfigModal() {
-      document.getElementById('input-github-token').value = localStorage.getItem(STORAGE_KEY_GH_TOKEN) || '';
-      document.getElementById('input-github-gist-id').value = localStorage.getItem(STORAGE_KEY_GH_GIST_ID) || '';
-      document.getElementById('modal-config').classList.remove('hidden');
-    }
-
-    function closeConfigModal() {
-      document.getElementById('modal-config').classList.add('hidden');
-    }
-
-    function saveGitHubConfig() {
-      const token = document.getElementById('input-github-token').value.trim();
-      const gistId = document.getElementById('input-github-gist-id').value.trim();
-
-      if (token) localStorage.setItem(STORAGE_KEY_GH_TOKEN, token);
-      else localStorage.removeItem(STORAGE_KEY_GH_TOKEN);
-
-      if (gistId) localStorage.setItem(STORAGE_KEY_GH_GIST_ID, gistId);
-      else localStorage.removeItem(STORAGE_KEY_GH_GIST_ID);
-
-      closeConfigModal();
-      showToast("Configuración guardada", "success");
-    }
-
-    async function updateGistFile(filename, content) {
-      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
-      let gistId = localStorage.getItem(STORAGE_KEY_GH_GIST_ID);
-      if (!token) return false;
-
-      const filesPayload = {};
-      filesPayload[filename] = { content: content };
-
-      const bodyPayload = {
-        description: "Gestión Garaje JJNH",
-        public: false,
-        files: filesPayload
-      };
-
-      let url = 'https://api.github.com/gists';
-      let method = 'POST';
-
-      if (gistId) {
-        url = `https://api.github.com/gists/${gistId}`;
-        method = 'PATCH';
-      }
-
-      try {
-        const res = await fetch(url, {
-          method: method,
-          headers: {
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(bodyPayload)
-        });
-
-        if (res.ok) {
-          const resData = await res.json();
-          if (!gistId && resData.id) {
-            localStorage.setItem(STORAGE_KEY_GH_GIST_ID, resData.id);
-          }
-          return true;
-        }
-      } catch(e) {
-        console.error(e);
-      }
-      return false;
-    }
-
-    async function handleSalirSesion() {
-      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
-      if (!token) {
-        showToast("Configura primero la nube en Config Nube.", "info");
-        return;
-      }
-
-      showToast("Guardando cambios en la nube...", "info");
-
-      let csvPlazas = ["Plaza Interna;Plaza Visual;Ocupado;Nombre;Alias;NIF;Telefono;Matricula;Modelo;Cuota;Estado Pago;Fecha;Notas"];
-      garageData.forEach(s => {
-        csvPlazas.push([
-          s.id, s.spotNumber||s.id, s.occupied?'SI':'NO', s.tenantName||'', s.tenantAlias||'',
-          s.tenantNif||'', s.tenantPhone||'', s.carPlate||'', s.carModel||'',
-          s.price||80, s.paymentStatus==='paid'?'Pagado':'Pendiente', s.startDate||'', s.notes||''
-        ].join(";"));
-      });
-      await updateGistFile("plazas.csv", csvPlazas.join("\n"));
-
-      let csvMov = ["Fecha;Tipo;Categoria;Concepto;Nombre;Importe;Estado"];
-      paymentsLedger.forEach(p => {
-        csvMov.push([
-          p.fecha||'', p.tipo||'Ingreso', p.categoria||'Alquiler', p.concepto||'',
-          p.nombreCompleto||'', p.cuota||80, p.estado||'Pagado'
-        ].join(";"));
-      });
-      await updateGistFile("diario.csv", csvMov.join("\n"));
-
-      showToast("¡Datos guardados con éxito en GitHub!", "success");
-    }
-
-    async function exportToDiarioCSV() {
-      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
-      const gistId = localStorage.getItem(STORAGE_KEY_GH_GIST_ID);
-
-      if (!token) {
-        showToast("Configura primero la nube en Config Nube.", "info");
-        return;
-      }
-
-      showToast("Actualizando diario.csv en GitHub...", "info");
-
-      let existingMovs = [];
-
-      // Si tenemos Gist ID, primero leemos el contenido previo de diario.csv para no sobrescribir ni borrar nada
-      if (gistId) {
-        try {
-          const res = await fetch(`https://api.github.com/gists/${gistId}`, {
-            headers: {
-              'Authorization': `token ${token}`,
-              'Accept': 'application/vnd.github.v3+json'
-            }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            const file = data.files && (data.files['diario.csv'] || data.files['movimientos.csv']);
-            if (file && file.content) {
-              const lines = file.content.split('\n');
-              lines.slice(1).forEach(line => {
-                if (!line.trim()) return;
-                const cols = line.split(';');
-                if (cols.length >= 4) {
-                  existingMovs.push({
-                    fecha: cols[0] || '',
-                    tipo: cols[1] || 'Ingreso',
-                    categoria: cols[2] || 'Alquiler',
-                    concepto: cols[3] || '',
-                    nombreCompleto: cols[4] || '',
-                    cuota: parseFloat(cols[5]) || 0,
-                    estado: cols[6] || 'Pagado'
-                  });
-                }
-              });
-            }
-          }
-        } catch(e) {
-          console.error("Error al leer el diario actual de GitHub:", e);
-        }
-      }
-
-      // Combinar los movimientos existentes con los nuevos evitando duplicados exactos
-      const combined = [...existingMovs];
-      paymentsLedger.forEach(p => {
-        const duplicate = combined.some(item => 
-          item.fecha === p.fecha && 
-          item.concepto === p.concepto && 
-          item.cuota === p.cuota &&
-          item.nombreCompleto === p.nombreCompleto
-        );
-        if (!duplicate) {
-          combined.push(p);
-        }
-      });
-
-      let csvMov = ["Fecha;Tipo;Categoria;Concepto;Nombre;Importe;Estado"];
-      combined.forEach(p => {
-        csvMov.push([
-          p.fecha||'', p.tipo||'Ingreso', p.categoria||'Alquiler', p.concepto||'',
-          p.nombreCompleto||'', p.cuota||0, p.estado||'Pagado'
-        ].join(";"));
-      });
-
-      const ok = await updateGistFile("diario.csv", csvMov.join("\n"));
-      if (ok) {
-        showToast("Movimientos añadidos y conservados en diario.csv de GitHub ☁️", "success");
-      } else {
-        showToast("Error al guardar en GitHub", "info");
-      }
-    }
-
-    async function importFromHistoricoCSV() {
-      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
-      const gistId = localStorage.getItem(STORAGE_KEY_GH_GIST_ID);
-
-      if (!token || !gistId) {
-        showToast("Configura primero tu Token y Gist ID en Config Nube.", "info");
-        return;
-      }
-
-      const startDate = document.getElementById('filter-date-start')?.value;
-      const endDate = document.getElementById('filter-date-end')?.value;
-
-      if (!startDate || !endDate) {
-        showToast("Selecciona las fechas 'Desde' y 'Hasta' para filtrar el histórico.", "info");
-        return;
-      }
-
-      showToast("Consultando historico.csv en GitHub...", "info");
-
-      try {
-        const res = await fetch(`https://api.github.com/gists/${gistId}`, {
-          headers: {
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github.v3+json'
-          }
-        });
-
-        if (!res.ok) {
-          showToast("No se pudo obtener la información de GitHub.", "info");
-          return;
-        }
-
-        const data = await res.json();
-        
-        if (data.files && data.files['historico.csv'] && data.files['historico.csv'].content) {
-          const lines = data.files['historico.csv'].content.split('\n');
-          let countAdded = 0;
-
-          lines.slice(1).forEach(line => {
-            if (!line.trim()) return;
-            const cols = line.split(';');
-            if (cols.length >= 4) {
-              const fecha = cols[0] ? cols[0].trim() : '';
-              
-              // Comprobar si la fecha cae dentro del rango introducido
-              if (fecha >= startDate && fecha <= endDate) {
-                const nuevoMov = {
-                  fecha: fecha,
-                  tipo: cols[1] || 'Ingreso',
-                  categoria: cols[2] || 'Alquiler',
-                  concepto: cols[3] || '',
-                  nombreCompleto: cols[4] || '',
-                  cuota: parseFloat(cols[5]) || 0,
-                  estado: cols[6] || 'Pagado'
-                };
-
-                // Evitar duplicar en la App si ya existe
-                const exists = paymentsLedger.some(p => 
-                  p.fecha === nuevoMov.fecha && 
-                  p.concepto === nuevoMov.concepto && 
-                  p.cuota === nuevoMov.cuota
-                );
-                if (!exists) {
-                  paymentsLedger.push(nuevoMov);
-                  countAdded++;
-                }
-              }
-            }
-          });
-
-          saveLocalData();
-          renderPaymentsLedger();
-          showToast(`Se trajeron ${countAdded} movimientos previstos de historico.csv`, "success");
-        } else {
-          showToast("No se encontró el archivo historico.csv en tu Gist de GitHub.", "info");
-        }
-      } catch (err) {
-        console.error("Error al importar historico.csv:", err);
-        showToast("Error de conexión al leer el histórico.", "info");
-      }
-    }
-
-    function handleExportClick(type) {
-      if (type === 'spots') {
-        let csv = ["Plaza;Ocupado;Nombre;Importe;Estado"];
-        garageData.forEach(s => csv.push(`${s.spotNumber};${s.occupied?'SI':'NO'};${s.tenantName||''};${s.price||80};${s.paymentStatus}`));
-        const blob = new Blob([csv.join("\n")], { type: 'text/csv' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'plazas.csv';
-        a.click();
-      } else {
-        let csv = ["Fecha;Tipo;Concepto;Importe"];
-        paymentsLedger.forEach(p => csv.push(`${p.fecha||''};${p.tipo||''};${p.concepto||''};${p.cuota||0}`));
-        const blob = new Blob([csv.join("\n")], { type: 'text/csv' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'movimientos.csv';
-        a.click();
-      }
-    }
-
-    function importSpotsCSV(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const text = evt.target.result;
-        const lines = text.split('\n');
-        lines.slice(1).forEach((line, idx) => {
-          if (!line.trim() || idx >= TOTAL_SPOTS) return;
-          const cols = line.split(';');
-          if (cols.length >= 2) {
-            garageData[idx] = {
-              id: idx,
-              spotNumber: cols[1] || `${idx}`,
-              occupied: (cols[2] || '').toUpperCase() === 'SI',
-              tenantName: cols[3] || '',
-              tenantAlias: cols[4] || '',
-              tenantNif: cols[5] || '',
-              tenantPhone: cols[6] || '',
-              carPlate: cols[7] || '',
-              carModel: cols[8] || '',
-              price: parseFloat(cols[9]) || 80,
-              paymentStatus: (cols[10] || '').toLowerCase() === 'pagado' ? 'paid' : 'pending',
-              startDate: cols[11] || '',
-              notes: cols[12] || ''
-            };
-          }
-        });
-        saveLocalData();
-        renderGrid();
-        renderTable();
-        showToast("Plazas importadas con éxito", "success");
-      };
-      reader.readAsText(file);
-    }
-
-    function importPaymentsCSV(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const text = evt.target.result;
-        const lines = text.split('\n');
-        paymentsLedger = [];
-        lines.slice(1).forEach(line => {
-          if (!line.trim()) return;
-          const cols = line.split(';');
-          if (cols.length >= 4) {
-            paymentsLedger.push({
-              fecha: cols[0] || new Date().toISOString().split('T')[0],
-              tipo: cols[1] || 'Ingreso',
-              categoria: cols[2] || 'Alquiler',
-              concepto: cols[3] || '',
-              nombreCompleto: cols[4] || '',
-              cuota: parseFloat(cols[5]) || 0,
-              estado: cols[6] || 'Pagado'
-            });
-          }
-        });
-        saveLocalData();
-        renderPaymentsLedger();
-        showToast("Movimientos importados con éxito", "success");
-      };
-      reader.readAsText(file);
-    }
-
-    function toggleSpotPaymentStatus(spotId) {
-      const spot = garageData.find(s => s.id === spotId);
-      if (spot && spot.occupied) {
-        spot.paymentStatus = spot.paymentStatus === 'paid' ? 'pending' : 'paid';
-        if (spot.paymentStatus === 'paid') {
-          paymentsLedger.unshift({
-            fecha: new Date().toISOString().split('T')[0],
-            tipo: 'Ingreso',
-            categoria: 'Alquiler',
-            concepto: `Cobro Plaza #${spot.spotNumber}`,
-            nombreCompleto: spot.tenantName || 'Inquilino',
-            cuota: spot.price || 80,
-            estado: 'Pagado'
-          });
-        }
-        saveLocalData();
-        renderGrid();
-        renderTable();
-        renderPaymentsLedger();
-        showToast(`Plaza #${spot.spotNumber}: Pago actualizado`, "success");
-      }
-    }
-
-    function openSpotModal(spotId) {
-      const spot = garageData.find(s => s.id === spotId);
-      if (!spot) return;
-
-      document.getElementById('edit-spot-id').value = spot.id;
-      document.getElementById('edit-spot-number').value = spot.spotNumber;
-      document.getElementById('edit-spot-occupied').value = spot.occupied ? "true" : "false";
-      document.getElementById('edit-tenant-name').value = spot.tenantName || '';
-      document.getElementById('edit-tenant-alias').value = spot.tenantAlias || '';
-      document.getElementById('edit-tenant-nif').value = spot.tenantNif || '';
-      document.getElementById('edit-tenant-phone').value = spot.tenantPhone || '';
-      document.getElementById('edit-spot-price').value = spot.price || 80;
-      document.getElementById('edit-car-plate').value = spot.carPlate || '';
-      document.getElementById('edit-car-model').value = spot.carModel || '';
-      document.getElementById('edit-payment-status').value = spot.paymentStatus || 'pending';
-
-      toggleOccupiedFields();
-      document.getElementById('modal-spot').classList.remove('hidden');
-    }
-
-    function closeSpotModal() {
-      document.getElementById('modal-spot').classList.add('hidden');
-    }
-
-    function toggleOccupiedFields() {
-      const isOcc = document.getElementById('edit-spot-occupied').value === "true";
-      document.getElementById('tenant-fields').classList.toggle('hidden', !isOcc);
-    }
-
-    function saveSpotForm(e) {
-      e.preventDefault();
-      const id = parseInt(document.getElementById('edit-spot-id').value);
-      const spot = garageData.find(s => s.id === id);
-
-      if (spot) {
-        spot.occupied = document.getElementById('edit-spot-occupied').value === "true";
-        if (spot.occupied) {
-          spot.tenantName = document.getElementById('edit-tenant-name').value;
-          spot.tenantAlias = document.getElementById('edit-tenant-alias').value;
-          spot.tenantNif = document.getElementById('edit-tenant-nif').value;
-          spot.tenantPhone = document.getElementById('edit-tenant-phone').value;
-          spot.price = parseFloat(document.getElementById('edit-spot-price').value) || 80;
-          spot.carPlate = document.getElementById('edit-car-plate').value;
-          spot.carModel = document.getElementById('edit-car-model').value;
-          spot.paymentStatus = document.getElementById('edit-payment-status').value;
-        } else {
-          spot.tenantName = '';
-          spot.tenantAlias = '';
-          spot.tenantNif = '';
-          spot.tenantPhone = '';
-          spot.carPlate = '';
-          spot.carModel = '';
-          spot.paymentStatus = 'pending';
-        }
-
-        saveLocalData();
-        renderGrid();
-        renderTable();
-        closeSpotModal();
-        showToast("Plaza guardada con éxito", "success");
-      }
-    }
-
-    function openPaymentModal() {
-      document.getElementById('mov-fecha').value = new Date().toISOString().split('T')[0];
-      document.getElementById('mov-concepto').value = '';
-      document.getElementById('mov-nombre').value = '';
-      document.getElementById('mov-importe').value = '';
-      document.getElementById('modal-payment').classList.remove('hidden');
-    }
-
-    function closePaymentModal() {
-      document.getElementById('modal-payment').classList.add('hidden');
-    }
-
-    function savePaymentForm(e) {
-      e.preventDefault();
-      const nuevo = {
-        fecha: document.getElementById('mov-fecha').value,
-        tipo: document.getElementById('mov-tipo').value,
-        categoria: document.getElementById('mov-categoria').value,
-        concepto: document.getElementById('mov-concepto').value,
-        nombreCompleto: document.getElementById('mov-nombre').value,
-        cuota: parseFloat(document.getElementById('mov-importe').value) || 0,
-        estado: 'Pagado'
-      };
-      paymentsLedger.unshift(nuevo);
-      saveLocalData();
-      renderPaymentsLedger();
-      closePaymentModal();
-      showToast("Movimiento registrado", "success");
-    }
-
-    function procesoCierreMes() {
-      let creados = 0;
-      garageData.forEach(spot => {
-        if (spot.occupied) {
-          spot.paymentStatus = 'pending';
-          creados++;
-        }
-      });
-      saveLocalData();
-      renderGrid();
-      renderTable();
-      showToast(`Cierre realizado: ${creados} cobros marcados como pendientes`, "success");
-    }
-
-    function filterTableByStatus(status) {
-      currentFilterStatus = status;
-      renderTable();
-    }
-
-    function initDefaultData() {
-      const savedSpots = localStorage.getItem(STORAGE_KEY_SPOTS);
-      if (savedSpots) {
-        try { garageData = JSON.parse(savedSpots); } catch(e) { garageData = []; }
-      }
-      if (!garageData || garageData.length === 0) {
-        garageData = Array.from({length: TOTAL_SPOTS}, (_, i) => ({
-          id: i, spotNumber: `${i}`, occupied: false, tenantName: '', tenantAlias: '',
-          tenantNif: '', tenantPhone: '', carPlate: '', carModel: '', price: 80,
-          paymentStatus: 'pending', startDate: '', notes: ''
-        }));
-      }
-
-      const savedPayments = localStorage.getItem(STORAGE_KEY_PAYMENTS);
-      if (savedPayments) {
-        try { paymentsLedger = JSON.parse(savedPayments); } catch(e) { paymentsLedger = []; }
-      }
-    }
-
-    function openPaymentModal(index = -1) {
-      const modalTitle = document.getElementById('modal-payment-title');
-      const idxInput = document.getElementById('edit-payment-index');
-      
-      idxInput.value = index;
-
-      if (index >= 0 && paymentsLedger[index]) {
-        const p = paymentsLedger[index];
-        if (modalTitle) modalTitle.textContent = "Editar Movimiento";
-        document.getElementById('mov-fecha').value = p.fecha || new Date().toISOString().split('T')[0];
-        document.getElementById('mov-tipo').value = p.tipo || 'Ingreso';
-        document.getElementById('mov-categoria').value = p.categoria || 'Alquiler';
-        document.getElementById('mov-concepto').value = p.concepto || '';
-        document.getElementById('mov-nombre').value = p.nombreCompleto || '';
-        document.getElementById('mov-importe').value = p.cuota || 0;
-      } else {
-        if (modalTitle) modalTitle.textContent = "Nuevo Movimiento";
-        document.getElementById('mov-fecha').value = new Date().toISOString().split('T')[0];
-        document.getElementById('mov-tipo').value = 'Ingreso';
-        document.getElementById('mov-categoria').value = 'Alquiler';
-        document.getElementById('mov-concepto').value = '';
-        document.getElementById('mov-nombre').value = '';
-        document.getElementById('mov-importe').value = '';
-      }
-
-      document.getElementById('modal-payment').classList.remove('hidden');
-    }
-
-    function closePaymentModal() {
-      document.getElementById('modal-payment').classList.add('hidden');
-    }
-
-    function savePaymentForm(e) {
-      e.preventDefault();
-      const index = parseInt(document.getElementById('edit-payment-index').value);
-
-      const movimiento = {
-        fecha: document.getElementById('mov-fecha').value || new Date().toISOString().split('T')[0],
-        tipo: document.getElementById('mov-tipo').value,
-        categoria: document.getElementById('mov-categoria').value,
-        concepto: document.getElementById('mov-concepto').value,
-        nombreCompleto: document.getElementById('mov-nombre').value,
-        cuota: parseFloat(document.getElementById('mov-importe').value) || 0,
-        estado: 'Pagado'
-      };
-
-      if (index >= 0 && index < paymentsLedger.length) {
-        paymentsLedger[index] = movimiento;
-        showToast("Movimiento actualizado", "success");
-      } else {
-        paymentsLedger.unshift(movimiento);
-        showToast("Movimiento registrado", "success");
-      }
-
-      saveLocalData();
-      renderPaymentsLedger();
-      closePaymentModal();
-    }
-
-    function clearDateFilter() {
-      const startDateInput = document.getElementById('filter-date-start');
-      const endDateInput = document.getElementById('filter-date-end');
-      if (startDateInput) startDateInput.value = '';
-      if (endDateInput) endDateInput.value = '';
-      renderPaymentsLedger();
-    }
-
+<!-- ... existing code -->
     function renderPaymentsLedger() {
       const tbody = document.getElementById('payments-table-body');
       if (!tbody) return;
@@ -1206,4 +43,259 @@
     }
 
     function deletePayment(index) {
-<!-- ... existing code -->
+      if (index >= 0 && index < paymentsLedger.length) {
+        paymentsLedger.splice(index, 1);
+        saveLocalData();
+        renderPaymentsLedger();
+        showToast("Movimiento eliminado", "info");
+      }
+    }
+
+    function switchTab(tab) {
+      const views = ['map', 'list', 'payments'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const btn = document.getElementById(`tab-btn-${v}`);
+        if (el) el.classList.add('hidden');
+        if (btn) {
+          btn.classList.remove('border-brand-500', 'text-brand-400');
+          btn.classList.add('border-transparent', 'text-slate-400');
+        }
+      });
+
+      const activeView = document.getElementById(`view-${tab}`);
+      const activeBtn = document.getElementById(`tab-btn-${tab}`);
+      if (activeView) activeView.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-slate-400');
+        activeBtn.classList.add('border-brand-500', 'text-brand-400');
+      }
+
+      if (tab === 'map') renderGrid();
+      if (tab === 'list') renderTable();
+      if (tab === 'payments') renderPaymentsLedger();
+    }
+
+    function createSpotCard(spot) {
+      let bgClass = "bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-500";
+      let statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>`;
+      
+      if (spot.occupied) {
+        if (spot.paymentStatus === 'paid') {
+          bgClass = "bg-emerald-950/40 border-emerald-500/50 text-emerald-100 hover:border-emerald-400";
+          statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></span>`;
+        } else {
+          bgClass = "bg-rose-950/40 border-rose-500/50 text-rose-100 hover:border-rose-400";
+          statusBadge = `<span class="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-sm shadow-rose-400/50"></span>`;
+        }
+      }
+
+      return `
+        <div onclick="openSpotModal(${spot.id})" class="cursor-pointer border rounded-xl p-3 flex flex-col justify-between transition-all-200 hover:scale-[1.02] ${bgClass} shadow-md min-h-[90px]">
+          <div class="flex items-center justify-between border-b border-slate-700/50 pb-1.5 mb-1.5">
+            <span class="font-mono font-extrabold text-sm">#${spot.spotNumber}</span>
+            <div class="flex items-center gap-1.5">
+              ${statusBadge}
+              ${spot.occupied ? `<button onclick="event.stopPropagation(); toggleSpotPaymentStatus(${spot.id})" class="p-1 hover:bg-slate-700/60 rounded text-slate-300" title="Cambiar estado de pago"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></button>` : ''}
+            </div>
+          </div>
+          <div class="text-xs truncate">
+            ${spot.occupied ? `<div class="font-bold text-slate-100 truncate">${spot.tenantName || 'Sin Nombre'}</div><div class="text-[11px] text-slate-400 font-mono">${formatAmountWithThousands(spot.price)} €</div>` : `<div class="text-slate-500 italic text-[11px]">Disponible</div>`}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGrid() {
+      const topEl = document.getElementById('grid-top');
+      const leftEl = document.getElementById('grid-left');
+      const rightEl = document.getElementById('grid-right');
+      const filter = document.getElementById('map-filter')?.value || 'all';
+
+      if (!topEl || !leftEl || !rightEl) return;
+
+      topEl.innerHTML = '';
+      leftEl.innerHTML = '';
+      rightEl.innerHTML = '';
+
+      garageData.forEach(spot => {
+        if (filter === 'free' && spot.occupied) return;
+        if (filter === 'paid' && (!spot.occupied || spot.paymentStatus !== 'paid')) return;
+        if (filter === 'pending' && (!spot.occupied || spot.paymentStatus !== 'pending')) return;
+
+        const cardHtml = createSpotCard(spot);
+
+        if (spot.id >= 8 && spot.id <= 15) {
+          topEl.innerHTML += cardHtml;
+        } else if (spot.id >= 0 && spot.id <= 7) {
+          leftEl.innerHTML += cardHtml;
+        } else {
+          rightEl.innerHTML += cardHtml;
+        }
+      });
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      updateDashboardStats();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('table-body');
+      const search = (document.getElementById('table-search')?.value || '').toLowerCase();
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+
+      garageData.forEach(spot => {
+        if (currentFilterStatus === 'free' && spot.occupied) return;
+        if (currentFilterStatus === 'paid' && (!spot.occupied || spot.paymentStatus !== 'paid')) return;
+        if (currentFilterStatus === 'pending' && (!spot.occupied || spot.paymentStatus !== 'pending')) return;
+
+        if (search) {
+          const text = `${spot.spotNumber} ${spot.tenantName} ${spot.tenantAlias} ${spot.tenantNif} ${spot.carPlate} ${spot.tenantPhone}`.toLowerCase();
+          if (!text.includes(search)) return;
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/50";
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-mono font-bold text-slate-200">#${spot.spotNumber}</td>
+          <td class="px-4 py-3 text-xs">
+            <span class="px-2 py-1 rounded-full font-semibold ${spot.occupied ? 'bg-slate-800 text-slate-300' : 'bg-slate-800/60 text-slate-500'}">
+              ${spot.occupied ? 'Ocupada' : 'Disponible'}
+            </span>
+          </td>
+          <td class="px-4 py-3 font-medium text-slate-100">${spot.occupied ? (spot.tenantName || '-') : '<span class="text-slate-500 font-normal italic">Sin inquilino</span>'}</td>
+          <td class="px-4 py-3 font-mono text-xs">${spot.occupied ? (spot.tenantNif || '-') : '-'}</td>
+          <td class="px-4 py-3 text-xs">${spot.occupied ? `${spot.carPlate || ''} ${spot.carModel ? '('+spot.carModel+')' : ''}` : '-'}</td>
+          <td class="px-4 py-3 text-xs">${spot.occupied ? (spot.tenantPhone || '-') : '-'}</td>
+          <td class="px-4 py-3 text-right font-mono font-bold">${spot.occupied ? formatAmountWithThousands(spot.price)+' €' : '-'}</td>
+          <td class="px-4 py-3 text-center text-xs">
+            ${spot.occupied ? `
+              <button onclick="toggleSpotPaymentStatus(${spot.id})" class="px-2.5 py-1 rounded-full text-xs font-semibold ${spot.paymentStatus === 'paid' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-rose-950 text-rose-400 border border-rose-800'}">
+                ${spot.paymentStatus === 'paid' ? 'Pagado' : 'Pendiente'}
+              </button>
+            ` : '-'}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <button onclick="openSpotModal(${spot.id})" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition" title="Editar plaza">
+              <i data-lucide="edit" class="w-4 h-4"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function updateDashboardStats() {
+      const occupied = garageData.filter(s => s.occupied);
+      const paid = occupied.filter(s => s.paymentStatus === 'paid');
+      const pending = occupied.filter(s => s.paymentStatus === 'pending');
+
+      const expectedTotal = occupied.reduce((acc, s) => acc + (s.price || 80), 0);
+      const collectedTotal = paid.reduce((acc, s) => acc + (s.price || 80), 0);
+      const pendingTotal = pending.reduce((acc, s) => acc + (s.price || 80), 0);
+
+      const netLedger = paymentsLedger.reduce((acc, p) => {
+        const val = p.cuota || 0;
+        return p.tipo === 'Gasto' ? acc - val : acc + val;
+      }, 0);
+
+      document.getElementById('stat-saldo-actual').textContent = `${formatAmountWithThousands(netLedger)} €`;
+      document.getElementById('stat-saldo-estimado').textContent = `${formatAmountWithThousands(netLedger + pendingTotal)} €`;
+
+      const corridorSaldo = document.getElementById('corridor-saldo-actual');
+      if (corridorSaldo) corridorSaldo.textContent = `${formatAmountWithThousands(netLedger)} €`;
+
+      document.getElementById('stat-ocupadas-val').textContent = `${occupied.length} / ${TOTAL_SPOTS}`;
+      document.getElementById('stat-pendientes-val').textContent = `${pending.length}`;
+
+      document.getElementById('stat-collected').textContent = `${formatAmountWithThousands(collectedTotal)} €`;
+      document.getElementById('stat-pending-amount').textContent = `${formatAmountWithThousands(pendingTotal)} €`;
+      document.getElementById('stat-expected').textContent = `Estimado: ${formatAmountWithThousands(expectedTotal)} €`;
+    }
+
+    async function autoLoadFromGist() {
+      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
+      const gistId = localStorage.getItem(STORAGE_KEY_GH_GIST_ID);
+      if (!token || !gistId) return;
+
+      try {
+        const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+          headers: {
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.files && data.files['plazas.csv'] && data.files['plazas.csv'].content) {
+            const lines = data.files['plazas.csv'].content.split('\n');
+            lines.slice(1).forEach((line, idx) => {
+              if (!line.trim() || idx >= TOTAL_SPOTS) return;
+              const cols = line.split(';');
+              if (cols.length >= 2) {
+                garageData[idx] = {
+                  id: idx,
+                  spotNumber: cols[1] || `${idx}`,
+                  occupied: (cols[2] || '').toUpperCase() === 'SI',
+                  tenantName: cols[3] || '',
+                  tenantAlias: cols[4] || '',
+                  tenantNif: cols[5] || '',
+                  tenantPhone: cols[6] || '',
+                  carPlate: cols[7] || '',
+                  carModel: cols[8] || '',
+                  price: parseFloat(cols[9]) || 80,
+                  paymentStatus: (cols[10] || '').toLowerCase() === 'pagado' ? 'paid' : 'pending',
+                  startDate: cols[11] || '',
+                  notes: cols[12] || ''
+                };
+              }
+            });
+          }
+
+          const fileMov = data.files && (data.files['diario.csv'] || data.files['movimientos.csv']);
+          if (fileMov && fileMov.content) {
+            const lines = fileMov.content.split('\n');
+            paymentsLedger = [];
+            lines.slice(1).forEach(line => {
+              if (!line.trim()) return;
+              const cols = line.split(';');
+              if (cols.length >= 4) {
+                paymentsLedger.push({
+                  fecha: cols[0] || new Date().toISOString().split('T')[0],
+                  tipo: cols[1] || 'Ingreso',
+                  categoria: cols[2] || 'Alquiler',
+                  concepto: cols[3] || '',
+                  nombreCompleto: cols[4] || '',
+                  cuota: parseFloat(cols[5]) || 0,
+                  estado: cols[6] || 'Pagado'
+                });
+              }
+            });
+          }
+
+          saveLocalData();
+          renderGrid();
+          renderTable();
+          renderPaymentsLedger();
+          showToast("Sincronizado con GitHub Gist", "success");
+        }
+      } catch (e) {
+        console.error("Error al cargar automáticamente de Gist:", e);
+      }
+    }
+
+    window.onload = function() {
+      initDefaultData();
+      renderGrid();
+      renderTable();
+      renderPaymentsLedger();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      autoLoadFromGist();
+    };
+  </script>
+</body>
+</html>
