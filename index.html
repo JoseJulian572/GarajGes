@@ -353,13 +353,13 @@
             <button onclick="resetearDiarioGist()" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 rounded-lg border border-slate-700 hover:border-rose-900/50 flex items-center gap-1.5 transition" title="Reiniciar/Vaciar diario.csv en la nube">
               <i data-lucide="file-x" class="w-4 h-4"></i> Vaciar Diario
             </button>
-            <label onclick="handleImportPaymentsClick(event)" class="cursor-pointer px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition" title="Importar todos los movimientos desde archivo CSV">
-              <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i> Importar Movimientos
-              <input type="file" id="csv-payments-file-input" accept=".csv" class="hidden" onchange="importPaymentsCSV(event)">
-            </label>
             <label onclick="importarEntreFechasDesdeHistorico(event)" class="cursor-pointer px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition" title="Filtrar e importar movimientos entre dos fechas específicas">
               <i data-lucide="calendar-range" class="w-4 h-4 text-amber-400"></i> Importar entre Fechas
               <input type="file" id="csv-payments-range-input" accept=".csv" class="hidden" onchange="importPaymentsBetweenDates(event)">
+            </label> 
+            <label onclick="handleImportPaymentsClick(event)" class="cursor-pointer px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition" title="Importar todos los movimientos desde archivo CSV">
+              <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i> Importar Movimientos
+              <input type="file" id="csv-payments-file-input" accept=".csv" class="hidden" onchange="importPaymentsCSV(event)">
             </label>
             <button onclick="handleExportClick('payments')" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition" title="Exportar movimientos a CSV">
               <i data-lucide="download" class="w-4 h-4 text-slate-400"></i> Exportar Movimientos
