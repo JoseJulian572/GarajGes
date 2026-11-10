@@ -2207,13 +2207,9 @@ async function actualizarTodoDesdeNube() {
     }
 
     // 2. BORRAR/VACIAR REGISTRO DE PAGOS Y MOVIMIENTOS
-    if (typeof payments !== 'undefined') {
-      payments = []; // Vacía la lista de pagos en memoria
-    }
-    if (typeof savePayments === 'function') {
-      savePayments(); // Guarda el estado vacío en el almacenamiento
-    }
-
+    if (typeof clearPaymentHistoryConfirmation === 'function') {
+  await clearPaymentHistoryConfirmation();
+}
     // 3. IMPORTAR MOVIMIENTOS DESDE GITHUB
     const contentMovimientos = await fetchGistFile("movimientos.csv");
     if (contentMovimientos) {
