@@ -2198,19 +2198,24 @@
       }, 3000);
     }
 
-    /* no borra
+    no borra
     // funcion actializar +++++++++++++++++
 async function actualizarTodoDesdeNube() {
   try {
+    // 2. BORRAR/VACIAR REGISTRO DE PAGOS Y MOVIMIENTOS DIRECTAMENTE
+// 2. BORRAR/VACIAR REGISTRO DE PAGOS Y MOVIMIENTOS
+if (typeof clearPaymentHistory === 'function') {
+  clearPaymentHistory();
+}
+
+    
     // 1. IMPORTAR PLAZAS DESDE GITHUB
     const contentPlazas = await fetchGistFile("plazas.csv");
     if (contentPlazas) {
       processPlazasCSV(contentPlazas);
     }
 
-     // 2. BORRAR/VACIAR REGISTRO DE PAGOS Y MOVIMIENTOS DIRECTAMENTE
-payments = []; // Vacía la lista en memoria
-if (typeof savePayments === 'function') savePayments(); // Guarda la lista vacía
+   
       
     // 3. IMPORTAR MOVIMIENTOS DESDE GITHUB
     const contentMovimientos = await fetchGistFile("movimientos.csv");
@@ -2231,8 +2236,8 @@ if (typeof savePayments === 'function') savePayments(); // Guarda la lista vací
       showToast("Error al sincronizar con GitHub", "error");
     }
   }
-}     */
-
+}     
+/*
 async function actualizarTodoDesdeNube() {
   try {
     
@@ -2264,9 +2269,15 @@ if (contentMovimientos && typeof processPaymentsCSV === "function") {
       showToast("Error al sincronizar con GitHub", "error");
     }
   }
-} 
+} */
 
-
+function clearPaymentHistory() {
+  payments = []; // o vaciar la lista de datos
+  if (typeof savePayments === 'function') {
+    savePayments();
+  }
+  // ... código que limpia la pantalla ...
+}
 
     
     /* ==========================================
