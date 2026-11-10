@@ -2197,7 +2197,9 @@
         toast.classList.add('hidden', 'translate-y-2');
       }, 3000);
     }
-// funcion actializar +++++++++++++++++
+
+    /* no borra
+    // funcion actializar +++++++++++++++++
 async function actualizarTodoDesdeNube() {
   try {
     // 1. IMPORTAR PLAZAS DESDE GITHUB
@@ -2229,8 +2231,44 @@ if (typeof savePayments === 'function') savePayments(); // Guarda la lista vací
       showToast("Error al sincronizar con GitHub", "error");
     }
   }
+}     */
+
+async function actualizarTodoDesdeNube() {
+  try {
+    
+// 1. IMPORTAR PLAZAS DESDE GITHUB
+const contentPlazas = await fetchGistFile("plazas.csv");
+if (contentPlazas && typeof processPlazasCSV === "function") {
+  processPlazasCSV(contentPlazas);
 }
-  
+
+// 2. BORRAR/VACIAR REGISTRO DE PAGOS Y MOVIMIENTOS DIRECTAMENTE
+payments = []; // Vacía la lista en memoria
+if (typeof savePayments === 'function') savePayments(); // Guarda la lista vacía
+
+// 3. IMPORTAR MOVIMIENTOS DESDE GITHUB
+const contentMovimientos = await fetchGistFile("movimientos.csv");
+if (contentMovimientos && typeof processPaymentsCSV === "function") {
+  processPaymentsCSV(contentMovimientos);
+}
+  // 4. NOTIFICACIÓN Y REFRESCAR PANTALLA
+    if (typeof showToast === 'function') {
+      showToast("¡Plazas y Movimientos actualizados desde GitHub!", "success");
+    }
+    if (typeof render === 'function') {
+      render();
+    }
+  } catch (error) {
+    console.error("Error al actualizar desde la nube:", error);
+    if (typeof showToast === 'function') {
+      showToast("Error al sincronizar con GitHub", "error");
+    }
+  }
+} 
+
+
+
+    
     /* ==========================================
        INICIALIZACIÓN AL CARGAR LA PÁGINA
        ========================================== */
