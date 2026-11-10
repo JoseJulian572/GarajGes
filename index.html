@@ -2206,10 +2206,10 @@ async function actualizarTodoDesdeNube() {
       processPlazasCSV(contentPlazas);
     }
 
-    // 2. BORRAR/VACIAR REGISTRO DE PAGOS Y MOVIMIENTOS
-    if (typeof clearPaymentHistoryConfirmation === 'function') {
-  await clearPaymentHistoryConfirmation();
-}
+     // 2. BORRAR/VACIAR REGISTRO DE PAGOS Y MOVIMIENTOS DIRECTAMENTE
+payments = []; // Vacía la lista en memoria
+if (typeof savePayments === 'function') savePayments(); // Guarda la lista vacía
+      
     // 3. IMPORTAR MOVIMIENTOS DESDE GITHUB
     const contentMovimientos = await fetchGistFile("movimientos.csv");
     if (contentMovimientos) {
