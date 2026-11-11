@@ -1,0 +1,2245 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Garaje - Garaje JJNH</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .transition-all-200 { transition: all 0.2s ease-in-out; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans bg-slate-950 text-slate-100 antialiased overflow-x-hidden">
+
+  <!-- ENCABEZADO / NAVBAR -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-30 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-brand-600 p-2.5 rounded-xl shadow-md shadow-brand-600/30 flex items-center justify-center text-white">
+          <i data-lucide="warehouse" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            Garaje JJNH
+          </h1>
+        </div>
+      </div>
+
+      <!-- Acciones globales -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <button onclick="openConfigModal()" class="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 shadow-md transition" title="Configurar Token y Gist ID de GitHub">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Config Nube</span>
+        </button>
+
+        <button onclick="procesoCierreMes()" class="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg border border-emerald-500 shadow-md transition" title="Cierre de mes y asiento de apertura">
+          <i data-lucide="calendar-check" class="w-4 h-4"></i>
+          <span>Cierre de Mes</span>
+        </button>
+<!-- nuevo boton de actualizar -->
+<button
+  onclick="actualizarTodoDesdeNube()"
+  class="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 shadow-md transition" 
+  title="Actualizar todo desde la nube">
+  <i data-lucide="refresh-cw" class="w-4 h-4 text-indigo-400"></i>
+  <span class="hidden sm:inline">Actualizar</span>
+</button>
+<!-- nuevo boton de actualizar -->      
+        <label onclick="handleImportClick(event)" class="cursor-pointer flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition" title="Importar fichero de Plazas">
+          <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i>
+          <span class="hidden sm:inline">Importar</span> Plazas CSV
+          <input type="file" id="csv-file-input" accept=".csv" class="hidden" onchange="importCSV(event)">
+        </label>
+        
+        <button onclick="handleExportClick('spots')" class="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition" title="Exportar fichero de Plazas CSV">
+          <i data-lucide="download" class="w-4 h-4 text-slate-400"></i>
+          <span class="hidden sm:inline">Exportar</span> Plazas CSV
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- KPI / TARJETAS DE ESTADÍSTICAS (3 CUADROS) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      
+      <!-- CUADRO 1: SALDOS -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div class="w-full space-y-2">
+          <div class="flex items-baseline justify-between gap-2">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">S. Actual</span>
+            <span class="text-3xl font-extrabold text-emerald-400 font-mono tracking-tight" id="stat-saldo-actual">0</span>
+          </div>
+          <div class="flex items-baseline justify-between gap-2 pt-2 border-t border-slate-800/80">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">S. estimado</span>
+            <span class="text-2xl font-bold text-slate-100 font-mono tracking-tight" id="stat-saldo-estimado">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CUADRO 2: OCUPADAS / PENDIENTES DE PAGO EN DOS FILAS -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-center space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">OCUPADAS</span>
+          <span class="text-2xl font-bold text-emerald-400 font-mono" id="stat-ocupadas-val">0 / 24</span>
+        </div>
+        <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">PENDIENTES DE PAGO</span>
+          <span class="text-2xl font-bold text-rose-400 font-mono" id="stat-pendientes-val">0</span>
+        </div>
+      </div>
+
+      <!-- CUADRO 3: RECAUDADO ESTE MES (COBRADO / PENDIENTE + ESTIMADO PEQUEÑO DEBAJO) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <span class="text-[10px] text-emerald-400 font-semibold block uppercase">Cobrado</span>
+              <span class="text-3xl font-bold text-emerald-400 font-mono" id="stat-collected">0</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-rose-400 font-semibold block uppercase">Pendiente</span>
+              <span class="text-xl font-bold text-rose-400 font-mono" id="stat-pending-amount">0</span>
+          </div>
+        </div>
+        <p class="text-text-xs text-slate-500 pt-2 border-t border-slate-800/80 mt-2" id="stat-expected">Estimado: 0</p>
+      </div>
+
+    </div>
+
+    <!-- PESTAÑAS DE NAVEGACIÓN -->
+    <div class="border-b border-slate-800 flex items-center justify-between gap-4">
+      <nav class="flex space-x-2 sm:space-x-4" aria-label="Tabs">
+        <button id="tab-btn-map" onclick="switchTab('map')" class="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-brand-500 text-brand-400 flex items-center gap-2 transition">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          Garaje
+        </button>
+        <button id="tab-btn-list" onclick="switchTab('list')" class="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700 flex items-center gap-2 transition">
+          <i data-lucide="list-table" class="w-4 h-4"></i>
+          Plazas
+        </button>
+        <button id="tab-btn-payments" onclick="switchTab('payments')" class="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700 flex items-center gap-2 transition">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          Tesoreria
+        </button>
+      </nav>
+
+      <!-- Leyenda de colores del mapa -->
+      <div id="map-legend" class="hidden sm:flex items-center space-x-4 text-xs text-slate-400 pr-2">
+        <div class="flex items-center space-x-1.5">
+          <span class="w-3 h-3 rounded-full bg-slate-600 border border-slate-500 inline-block"></span>
+          <span>Disponible (Gris)</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block shadow-sm shadow-emerald-500/50"></span>
+          <span>Pagado (Verde)</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-3 h-3 rounded-full bg-rose-500 inline-block shadow-sm shadow-rose-500/50"></span>
+          <span>Pendiente (Rojo)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA 1: PLANO DEL GARAJE -->
+    <section id="view-map" class="space-y-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i data-lucide="map-pin" class="w-5 h-5 text-brand-400"></i> Plano en U Invertida (#0 a #23)
+            </h2>
+            <p class="text-xs text-slate-400">Izquierda (#0 a #7), Superior (#8 a #15) y Derecha (#16 a #23).</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 font-medium">Filtro rápido:</span>
+            <select id="map-filter" onchange="renderGrid()" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-brand-500">
+              <option value="all">Todas las plazas (24)</option>
+              <option value="free">Disponibles (Gris)</option>
+              <option value="paid">Pagadas (Verde)</option>
+              <option value="pending">Pendientes (Rojo)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-slate-950/80 p-4 sm:p-6 rounded-2xl border border-slate-800/80 space-y-4">
+          <!-- ZONA SUPERIOR: Plazas #8 a #15 -->
+          <div class="space-y-2">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest text-center flex items-center justify-center gap-2">
+              <div class="h-px bg-slate-800 flex-1"></div>
+              <span>Zona Superior (Plazas #8 a #15 - Izquierda a Derecha)</span>
+              <div class="h-px bg-slate-800 flex-1"></div>
+            </div>
+            <div id="grid-top" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2.5"></div>
+          </div>
+
+          <!-- LADOS Y PASILLO CENTRAL -->
+          <div class="grid grid-cols-12 gap-3 min-h-[420px] items-stretch">
+            <!-- LADO IZQUIERDO: Plazas #0 a #7 -->
+            <div class="col-span-12 md:col-span-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 flex flex-col justify-between">
+              <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 text-center border-b border-slate-800 pb-1">
+                Lado Izquierdo (#0 a #7 ↑)
+              </div>
+              <div id="grid-left" class="grid grid-cols-2 md:grid-cols-1 gap-2 flex-1"></div>
+            </div>
+
+            <!-- PASILLO CENTRAL -->
+            <div class="col-span-12 md:col-span-6 border-2 border-dashed border-slate-800/80 bg-slate-950/40 rounded-xl p-4 flex flex-col justify-between items-center relative overflow-hidden my-2 md:my-0 min-h-[160px]">
+              <div class="w-full text-center py-2 border-b border-slate-800/60 text-slate-500 text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-2">
+                <i data-lucide="arrow-up" class="w-4 h-4 text-brand-500"></i>
+                Zona de Giro y Fondo
+                <i data-lucide="arrow-up" class="w-4 h-4 text-brand-500"></i>
+              </div>
+
+              <!-- CONTENIDO PERSONALIZADO EN PASILLO CENTRAL -->
+              <div class="my-auto text-center space-y-4 w-full flex flex-col items-center py-4">
+                
+                <!-- 1. FECHA DEL DÍA CON EL MES CON LETRAS -->
+                <div id="corridor-date" class="text-base sm:text-lg font-bold text-brand-400 capitalize bg-slate-900/90 px-5 py-1.5 rounded-full border border-brand-500/30 shadow-md">
+                  <!-- Se autocompleta por JS -->
+                </div>
+
+                <!-- 2. GRÁFICO CIRCULAR DE CORONA (DONUT) -->
+                <div class="relative w-36 h-36 sm:w-40 sm:h-40 flex items-center justify-center my-1">
+                  <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <!-- Fondo de la corona -->
+                    <path
+                      class="text-slate-800"
+                      stroke-width="4"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <!-- Porción Cobrado (Verde) -->
+                    <path
+                      id="donut-segment-paid"
+                      class="text-emerald-500 transition-all duration-500 ease-out"
+                      stroke-width="4"
+                      stroke-dasharray="0, 100"
+                      stroke-linecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <!-- Porción Pendiente (Rojo) -->
+                    <path
+                      id="donut-segment-pending"
+                      class="text-rose-500 transition-all duration-500 ease-out"
+                      stroke-width="4"
+                      stroke-dasharray="0, 100"
+                      stroke-dashoffset="0"
+                      stroke-linecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 font-bold">
+                    <span id="donut-percentage-text" class="text-lg sm:text-xl text-white font-extrabold">0%</span>
+                    <span class="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold">Cobrado</span>
+                  </div>
+                </div>
+
+                <!-- 3. SALDO ACTUAL -->
+                <div id="corridor-saldo-actual" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono tracking-tight bg-slate-900/90 px-6 py-2 rounded-2xl border border-emerald-500/30 shadow-lg">
+                  0
+                </div>
+
+              </div>
+
+              <div class="w-full text-center py-2 border-t border-slate-800/60 text-slate-500 text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-2">
+                <i data-lucide="arrow-down" class="w-4 h-4 text-brand-500"></i>
+                Entrada / Salida Garaje
+                <i data-lucide="arrow-down" class="w-4 h-4 text-brand-500"></i>
+              </div>
+            </div>
+
+            <!-- LADO DERECHO: Plazas #16 a #23 -->
+            <div class="col-span-12 md:col-span-3 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60 flex flex-col justify-between">
+              <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 text-center border-b border-slate-800 pb-1">
+                Lado Derecho (#16 a #23 ↓)
+              </div>
+              <div id="grid-right" class="grid grid-cols-2 md:grid-cols-1 gap-2 flex-1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA 2: LISTADO DE INQUILINOS -->
+    <section id="view-list" class="hidden space-y-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+            <input type="text" id="table-search" oninput="renderTable()" placeholder="Buscar por plaza, nombre, alias, NIF, matrícula o teléfono..." 
+                   class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition">
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="filterTableByStatus('all')" id="btn-filter-all" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-600 text-white transition">Todas</button>
+            <button onclick="filterTableByStatus('pending')" id="btn-filter-pending" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-400 border border-slate-700 transition">Pendientes</button>
+            <button onclick="filterTableByStatus('occupied')" id="btn-filter-occupied" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Ocupadas</button>
+            <button onclick="filterTableByStatus('free')" id="btn-filter-free" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 transition">Disponibles</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-950 text-xs uppercase font-semibold text-slate-400 border-b border-slate-800">
+              <tr>
+                <th class="px-4 py-3">Plaza Interna / Visual</th>
+                <th class="px-4 py-3">Estado</th>
+                <th class="px-4 py-3">Inquilino / Alias</th>
+                <th class="px-4 py-3">NIF / DNI</th>
+                <th class="px-4 py-3">Vehículo</th>
+                <th class="px-4 py-3">Teléfono</th>
+                <th class="px-4 py-3 text-right">Cuota</th>
+                <th class="px-4 py-3 text-center">Estado Pago</th>
+                <th class="px-4 py-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="table-body" class="divide-y divide-slate-800/60 bg-slate-900/50"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA 3: REGISTRO HISTÓRICO DE PAGOS -->
+    <section id="view-payments" class="hidden space-y-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i data-lucide="receipt" class="w-5 h-5 text-emerald-400"></i> Registro de Pagos y Movimientos
+            </h2>
+            <p class="text-xs text-slate-400">Historial de registros de cobro con campos: Fecha, Tipo, Categoría, Concepto, Nombre Completo, Importe y Estado.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openPaymentModal()" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition" title="Añadir nuevo movimiento">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i> + Movimiento
+            </button>
+            <button onclick="anexarADiarioCSV()" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition" title="Anexar movimientos a diario.csv">
+              <i data-lucide="file-plus" class="w-4 h-4 text-blue-400"></i> + DIARIO.CSV
+            </button>
+            <button onclick="resetearDiarioGist()" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 rounded-lg border border-slate-700 hover:border-rose-900/50 flex items-center gap-1.5 transition" title="Reiniciar/Vaciar diario.csv en la nube">
+              <i data-lucide="file-x" class="w-4 h-4"></i> Vaciar Diario
+            </button>
+            <label onclick="importarEntreFechasDesdeHistorico(event)" class="cursor-pointer px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition" title="Filtrar e importar movimientos entre dos fechas específicas">
+              <i data-lucide="calendar-range" class="w-4 h-4 text-amber-400"></i> Importar entre Fechas
+              <input type="file" id="csv-payments-range-input" accept=".csv" class="hidden" onchange="importPaymentsBetweenDates(event)">
+            </label> 
+            <label onclick="handleImportPaymentsClick(event)" class="cursor-pointer px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition" title="Importar todos los movimientos desde archivo CSV">
+              <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i> Importar Movimientos
+              <input type="file" id="csv-payments-file-input" accept=".csv" class="hidden" onchange="importPaymentsCSV(event)">
+            </label>
+            <button onclick="handleExportClick('payments')" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition" title="Exportar movimientos a CSV">
+              <i data-lucide="download" class="w-4 h-4 text-slate-400"></i> Exportar Movimientos
+            </button>
+            <button onclick="clearPaymentHistoryConfirmation()" class="px-3 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 flex items-center gap-1.5 transition" title="Limpiar historial completo">
+              <i data-lucide="trash-2" class="w-4 h-4 text-rose-400"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-950 text-xs uppercase font-semibold text-slate-400 border-b border-slate-800">
+              <tr>
+                <th class="px-4 py-3">Fecha</th>
+                <th class="px-4 py-3">Tipo</th>
+                <th class="px-4 py-3">Categoría</th>
+                <th class="px-4 py-3">Concepto</th>
+                <th class="px-4 py-3">Nombre Completo</th>
+                <th class="px-4 py-3 text-right">Importe</th>
+                <th class="px-4 py-3 text-center">Estado del Pago</th>
+                <th class="px-4 py-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="payments-table-body" class="divide-y divide-slate-800/60 bg-slate-900/50"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL CONFIGURACIÓN GITHUB GIST -->
+  <div id="modal-config" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-600/20 text-brand-400 border border-brand-500/30 font-bold text-lg flex items-center justify-center shadow-md">
+            <i data-lucide="github" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white">Sincronización GitHub Gist</h3>
+            <p class="text-xs text-slate-400">Guarda tus 4 CSVs en la nube</p>
+          </div>
+        </div>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Personal Access Token (GitHub)</label>
+          <input type="password" id="input-github-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Gist ID (Opcional - Se autocrea)</label>
+          <input type="text" id="input-github-gist-id" placeholder="ID del Gist (dejar vacío para crear uno)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono focus:outline-none focus:border-brand-500">
+        </div>
+
+        <p class="text-xs text-slate-400 bg-slate-950 p-3 rounded-xl border border-slate-800">
+          💡 Pega tu Token en tu tablet y portátil para compartir los 4 archivos (plazas.csv, movimientos.csv, diario.csv e historico.csv).
+        </p>
+
+        <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="closeConfigModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 rounded-lg">
+            Cancelar
+          </button>
+          <button type="button" onclick="saveGitHubConfig()" class="px-5 py-2 text-xs font-bold bg-brand-600 hover:bg-brand-500 text-white rounded-lg shadow-md transition">
+            Guardar Configuración
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR / AÑADIR MOVIMIENTO DE PAGO -->
+  <div id="modal-payment" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all">
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-bold text-lg flex items-center justify-center shadow-md">
+            <i data-lucide="receipt" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white" id="modal-payment-title">Nuevo Movimiento</h3>
+            <p class="text-xs text-slate-400" id="modal-payment-subtitle">Añade o modifica un registro en el historial de pagos</p>
+          </div>
+        </div>
+        <button onclick="closePaymentModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-payment" onsubmit="savePaymentRecord(event)" class="p-6 space-y-4">
+        <input type="hidden" id="form-payment-id">
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Fecha *</label>
+            <input type="date" id="form-payment-fecha" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Tipo *</label>
+            <input type="text" id="form-payment-tipo" placeholder="Ej: Ingreso, Gasto..." required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Categoría *</label>
+            <input type="text" id="form-payment-categoria" placeholder="Ej: Alquiler Plaza..." required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Importe *</label>
+            <input type="number" step="0.01" id="form-payment-cuota" required placeholder="80" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono font-bold focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Concepto *</label>
+          <input type="text" id="form-payment-concepto" placeholder="Ej: Cobro mensualidad Plaza 5" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nombre Completo *</label>
+          <input type="text" id="form-payment-nombre" placeholder="Nombre del pagador o cliente" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Estado del Pago</label>
+          <select id="form-payment-estado" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 font-medium">
+            <option value="Pagado">🟩 Pagado</option>
+            <option value="Pendiente">🟥 Pendiente</option>
+          </select>
+        </div>
+
+        <div class="flex items-center justify-end space-x-2 pt-4 border-t border-slate-800">
+          <button type="button" onclick="closePaymentModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 rounded-lg">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow-md shadow-emerald-600/30 transition">
+            Guardar Movimiento
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL FICHA DE PLAZA E INQUILINO -->
+  <div id="modal-spot" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all">
+      
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div class="flex items-center gap-3">
+          <div id="modal-spot-badge" class="w-10 h-10 rounded-xl bg-brand-600 text-white font-bold text-lg flex items-center justify-center shadow-md font-mono">
+            0
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white" id="modal-title">Gestión de Plaza</h3>
+            <p class="text-xs text-slate-400" id="modal-subtitle">Ficha del Inquilino</p>
+          </div>
+        </div>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-spot" onsubmit="saveSpot(event)" class="p-6 space-y-4">
+        <input type="hidden" id="form-spot-id">
+
+        <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800 mb-2">
+          <span class="text-sm font-medium text-slate-300">¿Plaza Alquilada / Ocupada?</span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="form-is-occupied" onchange="toggleOccupiedFields(this.checked)" class="sr-only peer">
+            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+          </label>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nº de Plaza (Identificador visual)</label>
+          <input type="text" id="form-spot-number" placeholder="Ej: 0, 8, P-12"
+                 class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500 font-mono font-bold">
+        </div>
+
+        <div id="occupied-fields-container" class="space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nombre Completo *</label>
+              <input type="text" id="form-tenant-name" placeholder="Ej: María García"
+                     class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Alias / Apodo</label>
+              <input type="text" id="form-tenant-alias" placeholder="Ej: Pepe Garaje"
+                     class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">NIF / DNI / CIF</label>
+              <input type="text" id="form-tenant-nif" placeholder="Ej: 12345678X"
+                     class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 uppercase placeholder-slate-600 focus:outline-none focus:border-brand-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Teléfono</label>
+              <input type="tel" id="form-tenant-phone" placeholder="Ej: 612 345 678"
+                     class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Matrícula *</label>
+              <input type="text" id="form-car-plate" placeholder="Ej: 1234-BCD"
+                     class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 uppercase placeholder-slate-600 focus:outline-none focus:border-brand-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Marca / Modelo</label>
+              <input type="text" id="form-car-model" placeholder="Ej: Seat León Gris"
+                     class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Cuota *</label>
+              <input type="number" step="0.01" id="form-price" placeholder="80"
+                     class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-mono font-bold focus:outline-none focus:border-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Estado del Pago</label>
+              <select id="form-payment-status" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-brand-500 font-medium">
+                <option value="paid">🟩 Pagado (Verde)</option>
+                <option value="pending">🟥 Pendiente (Rojo)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Fecha Contrato</label>
+              <input type="date" id="form-start-date"
+                     class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Notas / Mando</label>
+              <input type="text" id="form-notes" placeholder="Mando entregado..."
+                     class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+          <button type="button" id="btn-vacate" onclick="vacateSpot()" class="px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-950/40 border border-rose-900/50 rounded-lg transition hidden">
+            Desocupar Plaza
+          </button>
+          <div class="flex items-center space-x-2 ml-auto">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 rounded-lg">
+              Cancelar
+            </button>
+            <button type="submit" class="px-5 py-2 text-xs font-bold bg-brand-600 hover:bg-brand-500 text-white rounded-lg shadow-md shadow-brand-600/30 transition">
+              Guardar Cambios
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST DE NOTIFICACIONES -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden max-w-xs bg-slate-800 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 flex items-center space-x-3 transition-all duration-300 transform translate-y-2">
+    <i data-lucide="check-circle" id="toast-icon" class="w-5 h-5 text-emerald-400"></i>
+    <p class="text-xs font-medium" id="toast-message">Operación realizada con éxito</p>
+  </div>
+
+  <!-- JAVASCRIPT PRINCIPAL -->
+  <script>
+    const TOTAL_SPOTS = 24;
+    const STORAGE_KEY_SPOTS = 'garage_management_24_spots_v3';
+    const STORAGE_KEY_PAYMENTS = 'garage_management_payments_ledger_v1';
+    
+    const STORAGE_KEY_GH_TOKEN = 'garage_gh_token';
+    const STORAGE_KEY_GH_GIST_ID = 'garage_gh_gist_id';
+
+    let garageData = [];
+    let paymentsLedger = [];
+    let currentFilterStatus = 'all';
+
+    /* ==========================================
+       MANEJO DE CONEXIÓN GITHUB GIST (Y MODAL DE CONFIGURACIÓN)
+       ========================================== */
+
+    function openConfigModal() {
+      document.getElementById('input-github-token').value = localStorage.getItem(STORAGE_KEY_GH_TOKEN) || '';
+      document.getElementById('input-github-gist-id').value = localStorage.getItem(STORAGE_KEY_GH_GIST_ID) || '';
+      document.getElementById('modal-config').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('modal-config').classList.add('hidden');
+    }
+
+    function saveGitHubConfig() {
+      const token = document.getElementById('input-github-token').value.trim();
+      const gistId = document.getElementById('input-github-gist-id').value.trim();
+
+      if (token) {
+        localStorage.setItem(STORAGE_KEY_GH_TOKEN, token);
+      } else {
+        localStorage.removeItem(STORAGE_KEY_GH_TOKEN);
+      }
+
+      if (gistId) {
+        localStorage.setItem(STORAGE_KEY_GH_GIST_ID, gistId);
+      } else {
+        localStorage.removeItem(STORAGE_KEY_GH_GIST_ID);
+      }
+
+      closeConfigModal();
+      showToast("Configuración de GitHub guardada.", "success");
+    }
+
+    async function fetchGistFile(filename) {
+      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
+      const gistId = localStorage.getItem(STORAGE_KEY_GH_GIST_ID);
+      if (!token || !gistId) return null;
+
+      try {
+        const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.files && data.files[filename]) {
+            return data.files[filename].content;
+          }
+        }
+      } catch(e) {
+        console.error(e);
+      }
+      return null;
+    }
+
+    async function updateGistFile(filename, content) {
+      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
+      let gistId = localStorage.getItem(STORAGE_KEY_GH_GIST_ID);
+      if (!token) return;
+
+      const filesPayload = {};
+      filesPayload[filename] = { content: content };
+
+      const bodyPayload = {
+        description: "Gestión de Garaje - Archivos CSV",
+        public: false,
+        files: filesPayload
+      };
+
+      let url = 'https://api.github.com/gists';
+      let method = 'POST';
+
+      if (gistId) {
+        url = `https://api.github.com/gists/${gistId}`;
+        method = 'PATCH';
+      }
+
+      try {
+        const res = await fetch(url, {
+          method: method,
+          headers: {
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(bodyPayload)
+        });
+
+        if (res.ok) {
+          const resData = await res.json();
+          if (!gistId && resData.id) {
+            localStorage.setItem(STORAGE_KEY_GH_GIST_ID, resData.id);
+          }
+        }
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    /* ==========================================
+       REDIRECCIONES DE BOTONES A GITHUB GIST / LOCAL
+       ========================================== */
+
+    async function handleExportClick(type) {
+      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
+      exportCSV(type);
+      if (token) {
+        let csvLines = [];
+        if (type === 'payments') {
+          const headers = ["Fecha", "Tipo", "Categoria", "Concepto", "NOMBRE COMPLETO", "IMPORTE", "ESTADO DEL PAGO"];
+          csvLines.push(headers.join(";"));
+          paymentsLedger.forEach(p => {
+            const valCuota = parseFloat(p.cuota) || 0;
+            const row = [
+              formatDisplayDate(p.fecha) || '',
+              p.tipo || 'Ingreso',
+              p.categoria || 'Alquiler Plaza',
+              p.concepto || '',
+              p.nombreCompleto || p.nombre || '',
+              formatAmount(valCuota),
+              p.estado || 'Pagado'
+            ];
+            csvLines.push(row.join(";"));
+          });
+          await updateGistFile("movimientos.csv", csvLines.join("\n"));
+        } else {
+          const headers = ["Plaza Interna", "Plaza Visual", "Ocupado", "Nombre Inquilino", "Alias", "NIF", "Telefono", "Matricula", "Modelo", "Cuota", "Estado Pago", "Fecha Inicio", "Notas"];
+          csvLines.push(headers.join(";"));
+          garageData.forEach(s => {
+            const valPrice = parseFloat(s.price) || 0;
+            const isOcc = s.occupied || s.isOccupied;
+            const isP = s.isPaid || s.paymentStatus === 'paid';
+            const row = [
+              s.id,
+              s.spotNumber || `${s.id}`,
+              isOcc ? 'SI' : 'NO',
+              s.tenantName || '',
+              s.tenantAlias || '',
+              s.tenantNif || '',
+              s.tenantPhone || '',
+              s.carPlate || '',
+              s.carModel || '',
+              formatAmount(valPrice),
+              isP ? 'Pagado' : 'Pendiente',
+              formatDisplayDate(s.startDate) || '',
+              s.notes || ''
+            ];
+            csvLines.push(row.join(";"));
+          });
+          await updateGistFile("plazas.csv", csvLines.join("\n"));
+        }
+      }
+    }
+
+    async function handleImportClick(event) {
+      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
+      const gistId = localStorage.getItem(STORAGE_KEY_GH_GIST_ID);
+      if (token && gistId) {
+        event.preventDefault();
+        const content = await fetchGistFile("plazas.csv");
+        if (content) {
+          processPlazasCSV(content);
+          showToast("Plazas importadas desde GitHub Gist (plazas.csv)", "success");
+        } else {
+          showToast("No se encontró el fichero plazas.csv en GitHub Gist.", "info");
+        }
+      }
+    }
+
+    async function handleImportPaymentsClick(event) {
+      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
+      const gistId = localStorage.getItem(STORAGE_KEY_GH_GIST_ID);
+      if (token && gistId) {
+        event.preventDefault();
+        const content = await fetchGistFile("movimientos.csv");
+        if (content) {
+          processPaymentsCSV(content);
+          showToast("Movimientos importados desde GitHub Gist (movimientos.csv)", "success");
+        } else {
+          showToast("No se encontró el fichero movimientos.csv en GitHub Gist.", "info");
+        }
+      }
+    }
+
+    async function anexarADiarioCSV() {
+      if (paymentsLedger.length === 0) {
+        showToast("No hay movimientos en el registro para anexar", "info");
+        return;
+      }
+
+      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
+      if (token) {
+        let existingContent = await fetchGistFile("diario.csv") || "";
+        let existingLines = existingContent.split(/\r\n|\n/).filter(line => line.trim() !== '');
+
+        let newLines = [];
+        if (existingLines.length === 0) {
+          const headers = ["Fecha", "Tipo", "Categoria", "Concepto", "NOMBRE COMPLETO", "IMPORTE", "ESTADO DEL PAGO"];
+          newLines.push(headers.join(";"));
+        }
+
+        paymentsLedger.forEach(p => {
+          const valCuota = parseFloat(p.cuota) || 0;
+          const row = [
+            formatDisplayDate(p.fecha) || '',
+            p.tipo || 'Ingreso',
+            p.categoria || 'Alquiler Plaza',
+            p.concepto || '',
+            p.nombreCompleto || p.nombre || '',
+            formatAmount(valCuota),
+            p.estado || 'Pagado'
+          ];
+          newLines.push(row.join(";"));
+        });
+
+        let finalContent = existingLines.join("\n");
+        if (finalContent.length > 0) {
+          finalContent += "\n";
+        }
+        finalContent += newLines.join("\n");
+
+        await updateGistFile("diario.csv", finalContent);
+        showToast(`Se han anexado ${paymentsLedger.length} movimientos a diario.csv en GitHub Gist`, "success");
+      } else {
+        appendToExistingCSV();
+      }
+    }
+
+    async function resetearDiarioGist() {
+      if (!confirm("¿Deseas reiniciar y vaciar por completo el archivo diario.csv en GitHub Gist para empezar de cero?")) {
+        return;
+      }
+      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
+      if (token) {
+        const headers = ["Fecha", "Tipo", "Categoria", "Concepto", "NOMBRE COMPLETO", "IMPORTE", "ESTADO DEL PAGO"];
+        await updateGistFile("diario.csv", headers.join(";") + "\n");
+        showToast("El archivo diario.csv se ha vaciado y reiniciado con éxito.", "success");
+      } else {
+        showToast("Esta función requiere tener configurado el Token de GitHub.", "info");
+      }
+    }
+
+    async function importarEntreFechasDesdeHistorico(event) {
+      const token = localStorage.getItem(STORAGE_KEY_GH_TOKEN);
+      const gistId = localStorage.getItem(STORAGE_KEY_GH_GIST_ID);
+
+      if (token && gistId) {
+        event.preventDefault();
+        const fechaInicioStr = prompt("Introduce la FECHA INICIAL (formato DD/MM/AAAA o AAAA-MM-DD):", "01/01/" + new Date().getFullYear());
+        if (!fechaInicioStr) return;
+        const fechaFinStr = prompt("Introduce la FECHA FINAL (formato DD/MM/AAAA o AAAA-MM-DD):", formatDisplayDate(new Date().toISOString().split('T')[0]));
+        if (!fechaFinStr) return;
+
+        const content = await fetchGistFile("historico.csv");
+        if (content) {
+          processBetweenDatesContent(content, fechaInicioStr, fechaFinStr);
+        } else {
+          showToast("No se encontró el fichero historico.csv en GitHub Gist.", "info");
+        }
+      }
+    }
+
+    function processPlazasCSV(content) {
+      const lines = content.split(/\r\n|\n/).filter(line => line.trim() !== '');
+      if (lines.length < 2) return;
+
+      const delimiter = lines[0].includes(';') ? ';' : ',';
+      let updatedCount = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const rawCells = parseCSVLine(lines[i], delimiter);
+        if (!rawCells || rawCells.length < 2) continue;
+
+        let spotId = -1;
+        let spotNumVisual = '';
+        let occupiedIdx = 1;
+
+        if (rawCells.length >= 13) {
+          spotId = parseInt(rawCells[0].replace(/"/g, '').trim());
+          spotNumVisual = rawCells[1] ? rawCells[1].replace(/"/g, '').trim() : '';
+          occupiedIdx = 2;
+        } else {
+          spotNumVisual = rawCells[0] ? rawCells[0].replace(/"/g, '').trim() : '';
+          occupiedIdx = 1;
+        }
+
+        const occupiedStr = rawCells[occupiedIdx] ? rawCells[occupiedIdx].replace(/"/g, '').trim().toUpperCase() : 'NO';
+        const isOccupied = occupiedStr === 'SI' || occupiedStr === 'YES' || occupiedStr === 'TRUE' || occupiedStr === '1';
+
+        let spotIndex = -1;
+        if (!isNaN(spotId) && spotId >= 0) {
+          spotIndex = garageData.findIndex(s => s.id === spotId);
+        }
+        if (spotIndex === -1) {
+          spotIndex = garageData.findIndex(s => (s.spotNumber || `${s.id}`) === spotNumVisual || s.id.toString() === spotNumVisual);
+        }
+
+        if (spotIndex !== -1) {
+          const offset = (rawCells.length >= 13) ? 1 : 0;
+          const tenantName = rawCells[2 + offset] || '';
+          const tenantAlias = rawCells[3 + offset] || '';
+          const tenantNif = (rawCells[4 + offset] || '').toUpperCase();
+          const tenantPhone = rawCells[5 + offset] || '';
+          const carPlate = (rawCells[6 + offset] || '').toUpperCase();
+          const carModel = rawCells[7 + offset] || '';
+          const price = parseAmountString(rawCells[8 + offset]);
+          const isPaid = (rawCells[9 + offset] || '').toLowerCase().includes('pagado');
+          const startDate = parseDateToISO(rawCells[10 + offset] || '');
+          const notes = rawCells[11 + offset] || '';
+
+          garageData[spotIndex] = {
+            id: garageData[spotIndex].id,
+            spotNumber: spotNumVisual || `${garageData[spotIndex].id}`,
+            occupied: isOccupied,
+            isOccupied: isOccupied,
+            tenantName: isOccupied ? tenantName : "",
+            tenantAlias: isOccupied ? tenantAlias : "",
+            tenantNif: isOccupied ? tenantNif : "",
+            tenantPhone: isOccupied ? tenantPhone : "",
+            carPlate: isOccupied ? carPlate : "",
+            carModel: isOccupied ? carModel : "",
+            price: price,
+            isPaid: isOccupied ? isPaid : false,
+            paymentStatus: isOccupied && isPaid ? 'paid' : 'pending',
+            startDate: isOccupied ? startDate : "",
+            notes: isOccupied ? notes : ""
+          };
+          updatedCount++;
+        }
+      }
+      saveSpotsDataLocally();
+      renderGrid();
+      renderTable();
+    }
+
+    function processPaymentsCSV(content) {
+      const lines = content.split(/\r\n|\n/).filter(line => line.trim() !== '');
+      if (lines.length < 2) return;
+
+      const delimiter = lines[0].includes(';') ? ';' : ',';
+      let importedCount = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const rawCells = parseCSVLine(lines[i], delimiter);
+        if (!rawCells || rawCells.length < 2) continue;
+
+        const fechaRaw = rawCells[0] || new Date().toISOString().split('T')[0];
+        const fecha = parseDateToISO(fechaRaw);
+        const tipo = rawCells[1] || 'Ingreso';
+        const categoria = rawCells[2] || 'Alquiler Plaza';
+        const concepto = rawCells[3] || 'Movimiento importado';
+        const nombreCompleto = rawCells[4] || 'Sin especificar';
+        const cuota = parseAmountString(rawCells[5]);
+        const estado = rawCells[6] && rawCells[6].toLowerCase().includes('pendiente') ? 'Pendiente' : 'Pagado';
+
+        paymentsLedger.unshift({
+          id: "pay_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+          fecha,
+          tipo,
+          categoria,
+          concepto,
+          nombreCompleto,
+          nombre: nombreCompleto,
+          cuota,
+          estado
+        });
+
+        importedCount++;
+      }
+      savePaymentsDataLocally();
+      renderPaymentsLedger();
+    }
+
+    function processBetweenDatesContent(content, fechaInicioStr, fechaFinStr) {
+      const lines = content.split(/\r\n|\n/).filter(line => line.trim() !== '');
+      if (lines.length < 2) return;
+
+      const isoInicio = parseDateToISO(fechaInicioStr);
+      const isoFin = parseDateToISO(fechaFinStr);
+      const delimiter = lines[0].includes(';') ? ';' : ',';
+
+      let importedCount = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const rawCells = parseCSVLine(lines[i], delimiter);
+        if (!rawCells || rawCells.length < 2) continue;
+
+        const fechaRaw = rawCells[0] ? rawCells[0].trim() : '';
+        const fechaISO = parseDateToISO(fechaRaw);
+
+        if (fechaISO >= isoInicio && fechaISO <= isoFin) {
+          const tipo = rawCells[1] || 'Ingreso';
+          const categoria = rawCells[2] || 'Alquiler Plaza';
+          const concepto = rawCells[3] || 'Movimiento importado';
+          const nombreCompleto = rawCells[4] || 'Sin especificar';
+          const cuota = parseAmountString(rawCells[5]);
+          const estado = rawCells[6] && rawCells[6].toLowerCase().includes('pendiente') ? 'Pendiente' : 'Pagado';
+
+          paymentsLedger.unshift({
+            id: "pay_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+            fecha: fechaISO,
+            tipo,
+            categoria,
+            concepto,
+            nombreCompleto,
+            nombre: nombreCompleto,
+            cuota,
+            estado
+          });
+
+          importedCount++;
+        }
+      }
+
+      savePaymentsDataLocally();
+      renderPaymentsLedger();
+      showToast(`Importados ${importedCount} movimientos entre ${formatDisplayDate(isoInicio)} y ${formatDisplayDate(isoFin)}`, 'success');
+    }
+
+    function switchTab(tabName) {
+      const viewMap = document.getElementById('view-map');
+      const viewList = document.getElementById('view-list');
+      const viewPayments = document.getElementById('view-payments');
+
+      const btnMap = document.getElementById('tab-btn-map');
+      const btnList = document.getElementById('tab-btn-list');
+      const btnPayments = document.getElementById('tab-btn-payments');
+      const mapLegend = document.getElementById('map-legend');
+
+      viewMap.classList.add('hidden');
+      viewList.classList.add('hidden');
+      viewPayments.classList.add('hidden');
+
+      btnMap.className = 'px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition';
+      btnList.className = 'px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition';
+      btnPayments.className = 'px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition';
+      
+      if (mapLegend) mapLegend.classList.add('hidden');
+
+      if (tabName === 'map') {
+        viewMap.classList.remove('hidden');
+        btnMap.className = 'px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-brand-500 text-brand-400 flex items-center gap-2 transition';
+        if (mapLegend) mapLegend.classList.remove('hidden');
+        renderGrid();
+      } else if (tabName === 'list') {
+        viewList.classList.remove('hidden');
+        btnList.className = 'px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-brand-500 text-brand-400 flex items-center gap-2 transition';
+        renderTable();
+      } else if (tabName === 'payments') {
+        viewPayments.classList.remove('hidden');
+        btnPayments.className = 'px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-brand-500 text-brand-400 flex items-center gap-2 transition';
+        renderPaymentsLedger();
+      }
+    }
+
+    const demoTenants = [
+      { id: 0, spotNum: "0", name: "Carlos Mendoza", alias: "Carlos M.", nif: "12345678A", phone: "610 987 654", plate: "4821-KMS", model: "Toyota Corolla", price: 80, isPaid: true, date: "2026-01-15", notes: "Mando v1" },
+      { id: 1, spotNum: "1", name: "Ana Fernández", alias: "Anita", nif: "87654321B", phone: "633 112 233", plate: "9012-LBB", model: "Golf Negro", price: 85, isPaid: true, date: "2026-04-01", notes: "" },
+      { id: 2, spotNum: "2", name: "Roberto Gómez", alias: "Rober", nif: "45678912C", phone: "655 443 322", plate: "1144-HDZ", model: "Ford Focus", price: 75, isPaid: false, date: "2025-11-10", notes: "Paga el 10" },
+      { id: 3, spotNum: "3", name: "Laura Martínez", alias: "", nif: "78912345D", phone: "699 887 766", plate: "5533-MBC", model: "Renault Megane", price: 80, isPaid: true, date: "2026-06-20", notes: "" },
+      { id: 4, spotNum: "4", name: "Javier Ortiz", alias: "Javi Coche Blanco", nif: "23456789E", phone: "677 334 455", plate: "8822-HJK", model: "Audi A4 Blanco", price: 90, isPaid: false, date: "2025-09-01", notes: "" },
+      { id: 8, spotNum: "8", name: "Elena Ramos", alias: "Elena R.", nif: "34567890F", phone: "644 556 677", plate: "2345-DXT", model: "Peugeot 208", price: 75, isPaid: true, date: "2026-02-01", notes: "" },
+      { id: 9, spotNum: "9", name: "David Ruiz", alias: "", nif: "56789012G", phone: "611 223 344", plate: "6789-FGH", model: "BMW Serie 3", price: 90, isPaid: true, date: "2025-08-12", notes: "" },
+      { id: 11, spotNum: "11", name: "Marta Sánchez", alias: "Marta S.", nif: "67890123H", phone: "688 990 011", plate: "3456-JKL", model: "Nissan Qashqai", price: 85, isPaid: false, date: "2025-10-05", notes: "" },
+      { id: 14, spotNum: "14", name: "Pedro Alonso", alias: "Pedro A.", nif: "89012345I", phone: "622 334 455", plate: "7890-MNP", model: "Seat Ibiza Rojo", price: 75, isPaid: true, date: "2025-05-18", notes: "" },
+      { id: 15, spotNum: "15", name: "Lucía Torres", alias: "Lu", nif: "90123456J", phone: "666 778 899", plate: "1234-PQR", model: "Hyundai Tucson", price: 85, isPaid: true, date: "2026-01-10", notes: "" },
+      { id: 18, spotNum: "18", name: "Patricia Vega", alias: "Patri", nif: "01234567K", phone: "633 445 566", plate: "9012-VWX", model: "Mercedes Clase A", price: 90, isPaid: false, date: "2025-12-01", notes: "" },
+      { id: 22, spotNum: "22", name: "Sofia Castro", alias: "Sofi", nif: "11223344L", phone: "677 889 900", plate: "7890-BCD", model: "Fiat 500", price: 75, isPaid: true, date: "2026-03-15", notes: "" }
+    ];
+
+    function generateDefaultSpots() {
+      const defaultData = [];
+      for (let i = 0; i < TOTAL_SPOTS; i++) {
+        const demo = demoTenants.find(t => t.id === i);
+        if (demo) {
+          defaultData.push({
+            id: i,
+            spotNumber: demo.spotNum || `${i}`,
+            occupied: true,
+            isOccupied: true,
+            tenantName: demo.name,
+            tenantAlias: demo.alias || "",
+            tenantNif: demo.nif || "",
+            tenantPhone: demo.phone,
+            carPlate: demo.plate,
+            carModel: demo.model,
+            price: demo.price,
+            isPaid: demo.isPaid,
+            paymentStatus: demo.isPaid ? 'paid' : 'pending',
+            startDate: demo.date,
+            notes: demo.notes
+          });
+        } else {
+          defaultData.push({
+            id: i,
+            spotNumber: `${i}`,
+            occupied: false,
+            isOccupied: false,
+            tenantName: "",
+            tenantAlias: "",
+            tenantNif: "",
+            tenantPhone: "",
+            carPlate: "",
+            carModel: "",
+            price: 80,
+            isPaid: false,
+            paymentStatus: "pending",
+            startDate: "",
+            notes: ""
+          });
+        }
+      }
+      return defaultData;
+    }
+
+    function loadInitialData() {
+      const storedSpots = localStorage.getItem(STORAGE_KEY_SPOTS);
+      if (storedSpots) {
+        try { garageData = JSON.parse(storedSpots); } catch(e) { garageData = generateDefaultSpots(); }
+      } else {
+        garageData = generateDefaultSpots();
+      }
+
+      const storedPayments = localStorage.getItem(STORAGE_KEY_PAYMENTS);
+      if (storedPayments) {
+        try { paymentsLedger = JSON.parse(storedPayments); } catch(e) { paymentsLedger = []; }
+      } else {
+        const today = new Date().toISOString().split('T')[0];
+        paymentsLedger = [
+          { id: "pay_1", fecha: today, tipo: "Ingreso", categoria: "Alquiler Plaza", concepto: "Cobro mensualidad Plaza 0", nombreCompleto: "Carlos Mendoza", nombre: "Carlos Mendoza", cuota: 80, estado: "Pagado" },
+          { id: "pay_2", fecha: today, tipo: "Ingreso", categoria: "Alquiler Plaza", concepto: "Cobro mensualidad Plaza 1", nombreCompleto: "Ana Fernández", nombre: "Ana Fernández", cuota: 85, estado: "Pagado" }
+        ];
+      }
+      updateDashboardStats();
+    }
+
+    function saveSpotsDataLocally() {
+      localStorage.setItem(STORAGE_KEY_SPOTS, JSON.stringify(garageData));
+      updateDashboardStats();
+    }
+
+    function savePaymentsDataLocally() {
+      localStorage.setItem(STORAGE_KEY_PAYMENTS, JSON.stringify(paymentsLedger));
+      updateDashboardStats();
+    }
+
+    /* ==========================================
+       RENDERIZADO DEL MAPA EN U INVERTIDA
+       ========================================== */
+    function renderGrid() {
+      const gridTop = document.getElementById('grid-top');
+      const gridLeft = document.getElementById('grid-left');
+      const gridRight = document.getElementById('grid-right');
+      const filter = document.getElementById('map-filter').value;
+
+      gridTop.innerHTML = '';
+      gridLeft.innerHTML = '';
+      gridRight.innerHTML = '';
+
+      for (let id = 7; id >= 0; id--) {
+        const spot = garageData.find(s => s.id === id);
+        if (spot && checkFilter(spot, filter)) gridLeft.appendChild(createSpotCard(spot));
+      }
+
+      for (let id = 8; id <= 15; id++) {
+        const spot = garageData.find(s => s.id === id);
+        if (spot && checkFilter(spot, filter)) gridTop.appendChild(createSpotCard(spot));
+      }
+
+      for (let id = 16; id <= 23; id++) {
+        const spot = garageData.find(s => s.id === id);
+        if (spot && checkFilter(spot, filter)) gridRight.appendChild(createSpotCard(spot));
+      }
+
+      lucide.createIcons();
+    }
+
+    function checkFilter(spot, filter) {
+      const isOcc = spot.occupied || spot.isOccupied;
+      const isPaid = spot.isPaid || spot.paymentStatus === 'paid';
+      if (filter === 'free' && isOcc) return false;
+      if (filter === 'paid' && (!isOcc || !isPaid)) return false;
+      if (filter === 'pending' && (!isOcc || isPaid)) return false;
+      return true;
+    }
+
+    function createSpotCard(spot) {
+      const div = document.createElement('div');
+      const isOcc = spot.occupied || spot.isOccupied;
+      const isPaid = spot.isPaid || spot.paymentStatus === 'paid';
+
+      let bgClass = "bg-slate-800/80 hover:bg-slate-700/80 border-slate-600/60 text-slate-300";
+
+      if (isOcc) {
+        bgClass = isPaid 
+          ? "bg-emerald-950/60 hover:bg-emerald-900/60 border-emerald-500/80 text-emerald-100 shadow-md shadow-emerald-950/30"
+          : "bg-rose-950/70 hover:bg-rose-900/70 border-rose-500/80 text-rose-100 shadow-md shadow-rose-950/40";
+      }
+
+      div.className = `${bgClass} border rounded-xl p-2.5 cursor-pointer transition-all-200 transform hover:-translate-y-0.5 relative group flex flex-col justify-between min-h-[75px]`;
+      div.onclick = () => openModal(spot.id);
+
+      const displayTitle = isOcc 
+        ? (spot.tenantAlias ? escapeHtml(spot.tenantAlias) : escapeHtml(spot.tenantName))
+        : 'Disponible';
+
+      const displaySpotNumber = escapeHtml(spot.spotNumber || `${spot.id}`);
+
+      div.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="font-extrabold text-base tracking-tight text-white font-mono">
+            ${displaySpotNumber}
+          </span>
+          ${isOcc ? `
+            <button onclick="event.stopPropagation(); quickTogglePayment(${spot.id})" 
+                    class="p-1 rounded-md transition-colors ${isPaid ? 'bg-emerald-800/80 hover:bg-emerald-700 text-emerald-200' : 'bg-rose-800/80 hover:bg-rose-700 text-rose-200'}"
+                    title="${isPaid ? 'Marcar como Pendiente' : 'Marcar como Pagado'}">
+              <i data-lucide="${isPaid ? 'check' : 'dollar-sign'}" class="w-3.5 h-3.5"></i>
+            </button>
+          ` : ''}
+        </div>
+
+        <div class="my-1 overflow-hidden">
+          ${isOcc ? `
+            <p class="text-xs font-bold truncate text-slate-100 leading-tight">${displayTitle}</p>
+          ` : `
+            <p class="text-[11px] text-slate-400 italic leading-tight">Disponible</p>
+          `}
+        </div>
+
+        <div class="pt-0.5 border-t border-slate-800/80 flex items-center justify-end text-[10px]">
+          <span class="text-brand-400 group-hover:underline font-medium text-[9px] flex items-center gap-0.5">
+            Ficha <i data-lucide="chevron-right" class="w-3 h-3"></i>
+          </span>
+        </div>
+      `;
+
+      return div;
+    }
+
+    /* ==========================================
+       RENDERIZADO DE TABLA DE INQUILINOS
+       ========================================== */
+    function renderTable() {
+      const tbody = document.getElementById('table-body');
+      const search = document.getElementById('table-search').value.toLowerCase().trim();
+
+      tbody.innerHTML = '';
+
+      const filtered = garageData.filter(spot => {
+        const isOcc = spot.occupied || spot.isOccupied;
+        const isPaid = spot.isPaid || spot.paymentStatus === 'paid';
+
+        if (currentFilterStatus === 'pending' && (!isOcc || isPaid)) return false;
+        if (currentFilterStatus === 'occupied' && !isOcc) return false;
+        if (currentFilterStatus === 'free' && isOcc) return false;
+
+        if (search) {
+          const matchSpot = (spot.spotNumber || `${spot.id}`).toLowerCase().includes(search);
+          const matchName = (spot.tenantName || '').toLowerCase().includes(search);
+          const matchAlias = (spot.tenantAlias || '').toLowerCase().includes(search);
+          const matchNif = (spot.tenantNif || '').toLowerCase().includes(search);
+          const matchPlate = (spot.carPlate || '').toLowerCase().includes(search);
+          const matchPhone = (spot.tenantPhone || '').toLowerCase().includes(search);
+          return matchSpot || matchName || matchAlias || matchNif || matchPlate || matchPhone;
+        }
+
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="text-center py-8 text-slate-500">
+              <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+              No se encontraron plazas con esos criterios.
+            </td>
+          </tr>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filtered.forEach(spot => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/40 transition";
+        const isOcc = spot.occupied || spot.isOccupied;
+        const isPaid = spot.isPaid || spot.paymentStatus === 'paid';
+
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-bold text-white font-mono">${escapeHtml(spot.spotNumber || `${spot.id}`)}</td>
+          <td class="px-4 py-3">
+            ${isOcc 
+              ? `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-800 text-slate-300">Ocupada</span>` 
+              : `<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-950 text-slate-400 border border-slate-800">Disponible</span>`}
+          </td>
+          <td class="px-4 py-3 font-medium text-slate-100">
+            ${isOcc ? `
+              <div>
+                <span class="font-bold">${escapeHtml(spot.tenantName)}</span>
+                ${spot.tenantAlias ? `<span class="text-xs text-brand-400 block font-medium">Alias: ${escapeHtml(spot.tenantAlias)}</span>` : ''}
+              </div>
+            ` : '<span class="text-slate-600">-</span>'}
+          </td>
+          <td class="px-4 py-3 text-xs font-mono text-slate-300">${isOcc && spot.tenantNif ? escapeHtml(spot.tenantNif) : '<span class="text-slate-600">-</span>'}</td>
+          <td class="px-4 py-3">
+            ${isOcc ? `
+              <div class="text-xs">
+                <span class="font-mono bg-slate-950 px-1.5 py-0.5 rounded text-amber-300 border border-slate-800 font-bold">${escapeHtml(spot.carPlate)}</span>
+                <span class="text-slate-400 block text-[11px] mt-0.5">${escapeHtml(spot.carModel || '')}</span>
+              </div>
+            ` : '<span class="text-slate-600">-</span>'}
+          </td>
+          <td class="px-4 py-3 text-xs text-slate-300">${isOcc && spot.tenantPhone ? escapeHtml(spot.tenantPhone) : '<span class="text-slate-600">-</span>'}</td>
+          <td class="px-4 py-3 text-right font-mono text-sm font-semibold text-slate-200">${isOcc ? formatAmount(spot.price) : '-'}</td>
+          <td class="px-4 py-3 text-center">
+            ${isOcc ? (
+              isPaid 
+                ? `<span class="inline-flex items-center gap-1 text-white bg-emerald-600 border border-emerald-400 px-2.5 py-1 rounded-full text-xs font-bold"><i data-lucide="check" class="w-3.5 h-3.5"></i> Pagado</span>`
+                : `<span class="inline-flex items-center gap-1 text-white bg-rose-600 border border-rose-400 px-2.5 py-1 rounded-full text-xs font-bold"><i data-lucide="clock" class="w-3.5 h-3.5"></i> Pendiente</span>`
+            ) : '<span class="text-slate-600">-</span>'}
+          </td>
+          <td class="px-4 py-3 text-right space-x-2">
+            ${isOcc && !isPaid ? `
+              <button onclick="quickTogglePayment(${spot.id})" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow transition" title="Marcar como Pagado">
+                Cobrar
+              </button>
+            ` : ''}
+            <button onclick="openModal(${spot.id})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg border border-slate-700 transition">
+              Editar
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    function filterTableByStatus(status) {
+      currentFilterStatus = status;
+      const buttons = ['all', 'pending', 'occupied', 'free'];
+      buttons.forEach(b => {
+        const btn = document.getElementById(`btn-filter-${b}`);
+        if (btn) {
+          if (b === status) {
+            btn.className = "px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-600 text-white transition";
+          } else {
+            btn.className = "px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition";
+          }
+        }
+      });
+      renderTable();
+    }
+
+    function quickTogglePayment(spotId) {
+      const spot = garageData.find(s => s.id === spotId);
+      if (spot && (spot.occupied || spot.isOccupied)) {
+        const currentPaid = spot.isPaid || spot.paymentStatus === 'paid';
+        spot.isPaid = !currentPaid;
+        spot.paymentStatus = spot.isPaid ? 'paid' : 'pending';
+        saveSpotsDataLocally();
+        
+        if (spot.isPaid) {
+          addPaymentRecord(
+            spot.tenantName,
+            spot.price,
+            `Cobro mensualidad Plaza ${spot.spotNumber || spot.id}`,
+            "Pagado"
+          );
+        }
+
+        renderGrid();
+        renderTable();
+        const estado = spot.isPaid ? 'Pagado (Verde)' : 'Pendiente (Rojo)';
+        showToast(`Plaza ${spot.spotNumber || spotId} marcada como ${estado}`, 'success');
+      }
+    }
+
+    /* ==========================================
+       REGISTRO HISTÓRICO DE PAGOS
+       ========================================== */
+    function renderPaymentsLedger() {
+      const tbody = document.getElementById('payments-table-body');
+      tbody.innerHTML = '';
+
+      if (paymentsLedger.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-8 text-slate-500">
+              <i data-lucide="receipt" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+              No hay registros de pago grabados.
+            </td>
+          </tr>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      paymentsLedger.forEach(row => {
+        if (!row.id) {
+          row.id = "pay_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
+        }
+
+        const valCuota = parseFloat(row.cuota) || 0;
+        const isNegative = valCuota < 0;
+        const cuotaClass = isNegative ? 'text-rose-400' : 'text-emerald-400';
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/40 transition";
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-mono text-xs text-slate-300">${formatDisplayDate(row.fecha)}</td>
+          <td class="px-4 py-3 text-xs font-semibold text-emerald-400">${escapeHtml(row.tipo)}</td>
+          <td class="px-4 py-3 text-xs text-slate-300">${escapeHtml(row.categoria)}</td>
+          <td class="px-4 py-3 text-xs text-slate-200 font-medium">${escapeHtml(row.concepto)}</td>
+          <td class="px-4 py-3 text-xs font-bold text-white">${escapeHtml(row.nombreCompleto || row.nombre || '')}</td>
+          <td class="px-4 py-3 text-right font-mono text-xs font-bold ${cuotaClass}">${formatAmount(valCuota)}</td>
+          <td class="px-4 py-3 text-center">
+            <span class="px-2 py-0.5 text-xs font-bold rounded-full ${row.estado === 'Pagado' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-rose-950 text-rose-300 border border-rose-800'}">
+              ${escapeHtml(row.estado)}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-right space-x-1.5 whitespace-nowrap">
+            <button onclick="openPaymentModal('${row.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium rounded-lg border border-slate-700 transition" title="Editar movimiento">
+              <i data-lucide="pencil" class="w-3.5 h-3.5 inline"></i>
+            </button>
+            <button onclick="deletePaymentRecord('${row.id}')" class="px-2 py-1 bg-slate-800 hover:bg-rose-950/50 text-rose-400 hover:text-rose-300 text-xs font-medium rounded-lg border border-slate-700 hover:border-rose-900/50 transition" title="Borrar movimiento">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      savePaymentsDataLocally();
+      lucide.createIcons();
+    }
+
+    function addPaymentRecord(nombreCompleto, cuota, concepto = "Cobro mensualidad plaza", estado = "Pagado") {
+      const today = new Date().toISOString().split('T')[0];
+      const record = {
+        id: "pay_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+        fecha: today,
+        tipo: "Ingreso",
+        categoria: "Alquiler Plaza",
+        concepto: concepto,
+        nombreCompleto: nombreCompleto,
+        nombre: nombreCompleto,
+        cuota: parseFloat(cuota) || 0,
+        estado: estado
+      };
+      paymentsLedger.unshift(record);
+      savePaymentsDataLocally();
+      renderPaymentsLedger();
+    }
+
+    function openPaymentModal(paymentId = null) {
+      if (paymentId) {
+        const record = paymentsLedger.find(p => p.id === paymentId);
+        if (!record) return;
+
+        document.getElementById('modal-payment-title').textContent = 'Editar Movimiento';
+        document.getElementById('modal-payment-subtitle').textContent = 'Modifica los detalles del registro de pago';
+
+        document.getElementById('form-payment-id').value = record.id;
+        document.getElementById('form-payment-fecha').value = parseDateToISO(record.fecha) || new Date().toISOString().split('T')[0];
+        document.getElementById('form-payment-tipo').value = record.tipo || 'Ingreso';
+        document.getElementById('form-payment-categoria').value = record.categoria || 'Alquiler Plaza';
+        document.getElementById('form-payment-concepto').value = record.concepto || '';
+        document.getElementById('form-payment-nombre').value = record.nombreCompleto || record.nombre || '';
+        document.getElementById('form-payment-cuota').value = record.cuota || 0;
+        document.getElementById('form-payment-estado').value = record.estado || 'Pagado';
+      } else {
+        document.getElementById('modal-payment-title').textContent = 'Añadir Nuevo Movimiento';
+        document.getElementById('modal-payment-subtitle').textContent = 'Registra manualmente un nuevo movimiento o pago';
+
+        document.getElementById('form-payment-id').value = '';
+        document.getElementById('form-payment-fecha').value = new Date().toISOString().split('T')[0];
+        document.getElementById('form-payment-tipo').value = 'Ingreso';
+        document.getElementById('form-payment-categoria').value = 'Alquiler Plaza';
+        document.getElementById('form-payment-concepto').value = '';
+        document.getElementById('form-payment-nombre').value = '';
+        document.getElementById('form-payment-cuota').value = '';
+        document.getElementById('form-payment-estado').value = 'Pagado';
+      }
+
+      document.getElementById('modal-payment').classList.remove('hidden');
+    }
+
+    function closePaymentModal() {
+      document.getElementById('modal-payment').classList.add('hidden');
+    }
+
+    function savePaymentRecord(event) {
+      event.preventDefault();
+      const id = document.getElementById('form-payment-id').value;
+      const today = new Date().toISOString().split('T')[0];
+
+      const recordData = {
+        id: id || "pay_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+        fecha: document.getElementById('form-payment-fecha').value || today,
+        tipo: document.getElementById('form-payment-tipo').value.trim() || 'Ingreso',
+        categoria: document.getElementById('form-payment-categoria').value.trim() || 'Alquiler Plaza',
+        concepto: document.getElementById('form-payment-concepto').value.trim(),
+        nombreCompleto: document.getElementById('form-payment-nombre').value.trim(),
+        nombre: document.getElementById('form-payment-nombre').value.trim(),
+        cuota: parseFloat(document.getElementById('form-payment-cuota').value) || 0,
+        estado: document.getElementById('form-payment-estado').value
+      };
+      
+      if (id) {
+        const index = paymentsLedger.findIndex(p => p.id === id);
+        if (index !== -1) {
+          paymentsLedger[index] = recordData;
+          showToast("Movimiento actualizado correctamente", "success");
+        }
+      } else {
+        paymentsLedger.unshift(recordData);
+        showToast("Nuevo movimiento añadido", "success");
+      }
+
+      savePaymentsDataLocally();
+      renderPaymentsLedger();
+      closePaymentModal();
+    }
+
+    function deletePaymentRecord(paymentId) {
+      if (confirm("¿Seguro que deseas borrar este movimiento de pago?")) {
+        paymentsLedger = paymentsLedger.filter(p => p.id !== paymentId);
+        savePaymentsDataLocally();
+        renderPaymentsLedger();
+        showToast("Movimiento eliminado", "info");
+      }
+    }
+
+    function clearPaymentHistoryConfirmation() {
+      if (confirm("¿Deseas borrar todo el historial del registro de pagos?")) {
+        paymentsLedger = [];
+        savePaymentsDataLocally();
+        renderPaymentsLedger();
+        showToast("Historial de pagos vaciado", "info");
+      }
+    }
+
+    /* ==========================================
+       MODAL DE EDICIÓN DE PLAZA E INQUILINO
+       ========================================== */
+    function openModal(spotId) {
+      const spot = garageData.find(s => s.id === spotId);
+      if (!spot) return;
+
+      const isOcc = spot.occupied || spot.isOccupied;
+      const isPaid = spot.isPaid || spot.paymentStatus === 'paid';
+
+      document.getElementById('form-spot-id').value = spot.id;
+      document.getElementById('modal-spot-badge').textContent = spot.spotNumber || `${spot.id}`;
+      document.getElementById('modal-title').textContent = `Gestión Plaza ${spot.spotNumber || spot.id}`;
+      document.getElementById('modal-subtitle').textContent = isOcc ? `Inquilino: ${spot.tenantName}` : 'Plaza disponible';
+
+      document.getElementById('form-spot-number').value = spot.spotNumber || `${spot.id}`;
+
+      const isOccupiedInput = document.getElementById('form-is-occupied');
+      isOccupiedInput.checked = isOcc;
+      toggleOccupiedFields(isOcc);
+
+      document.getElementById('form-tenant-name').value = spot.tenantName || '';
+      document.getElementById('form-tenant-alias').value = spot.tenantAlias || '';
+      document.getElementById('form-tenant-nif').value = spot.tenantNif || '';
+      document.getElementById('form-tenant-phone').value = spot.tenantPhone || '';
+      document.getElementById('form-car-plate').value = spot.carPlate || '';
+      document.getElementById('form-car-model').value = spot.carModel || '';
+      document.getElementById('form-start-date').value = parseDateToISO(spot.startDate) || new Date().toISOString().split('T')[0];
+      document.getElementById('form-price').value = spot.price || 80;
+      document.getElementById('form-payment-status').value = isPaid ? 'paid' : 'pending';
+      document.getElementById('form-notes').value = spot.notes || '';
+
+      const btnVacate = document.getElementById('btn-vacate');
+      if (isOcc) {
+        btnVacate.classList.remove('hidden');
+      } else {
+        btnVacate.classList.add('hidden');
+      }
+
+      document.getElementById('modal-spot').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-spot').classList.add('hidden');
+    }
+
+    function toggleOccupiedFields(isOccupied) {
+      const container = document.getElementById('occupied-fields-container');
+      const reqInputs = ['form-tenant-name', 'form-car-plate', 'form-price'];
+
+      if (isOccupied) {
+        container.classList.remove('opacity-40', 'pointer-events-none');
+        reqInputs.forEach(id => document.getElementById(id).setAttribute('required', 'true'));
+      } else {
+        container.classList.add('opacity-40', 'pointer-events-none');
+        reqInputs.forEach(id => document.getElementById(id).removeAttribute('required'));
+      }
+    }
+
+    function saveSpot(event) {
+      event.preventDefault();
+      const spotId = parseInt(document.getElementById('form-spot-id').value);
+      const isOccupied = document.getElementById('form-is-occupied').checked;
+      const spotNumberInput = document.getElementById('form-spot-number').value.trim() || `${spotId}`;
+
+      const spotIndex = garageData.findIndex(s => s.id === spotId);
+      if (spotIndex === -1) return;
+
+      const isPaidNew = document.getElementById('form-payment-status').value === 'paid';
+      const tenantNameNew = document.getElementById('form-tenant-name').value.trim();
+      const priceNew = parseFloat(document.getElementById('form-price').value) || 0;
+
+      if (isOccupied) {
+        const previouslyPaid = garageData[spotIndex].isPaid || garageData[spotIndex].paymentStatus === 'paid';
+        garageData[spotIndex] = {
+          id: spotId,
+          spotNumber: spotNumberInput,
+          occupied: true,
+          isOccupied: true,
+          tenantName: tenantNameNew,
+          tenantAlias: document.getElementById('form-tenant-alias').value.trim(),
+          tenantNif: document.getElementById('form-tenant-nif').value.trim().toUpperCase(),
+          tenantPhone: document.getElementById('form-tenant-phone').value.trim(),
+          carPlate: document.getElementById('form-car-plate').value.trim().toUpperCase(),
+          carModel: document.getElementById('form-car-model').value.trim(),
+          price: priceNew,
+          isPaid: isPaidNew,
+          paymentStatus: isPaidNew ? 'paid' : 'pending',
+          startDate: document.getElementById('form-start-date').value,
+          notes: document.getElementById('form-notes').value.trim()
+        };
+
+        if (isPaidNew && !previouslyPaid) {
+          addPaymentRecord(
+            tenantNameNew,
+            priceNew,
+            `Cobro mensualidad Plaza ${spotNumberInput}`,
+            "Pagado"
+          );
+        }
+      } else {
+        garageData[spotIndex] = {
+          id: spotId,
+          spotNumber: spotNumberInput,
+          occupied: false,
+          isOccupied: false,
+          tenantName: "",
+          tenantAlias: "",
+          tenantNif: "",
+          tenantPhone: "",
+          carPlate: "",
+          carModel: "",
+          price: parseFloat(document.getElementById('form-price').value) || 80,
+          isPaid: false,
+          paymentStatus: 'pending',
+          startDate: "",
+          notes: ""
+        };
+      }
+
+      saveSpotsDataLocally();
+      renderGrid();
+      renderTable();
+      closeModal();
+      showToast(`Plaza ${spotNumberInput} actualizada correctamente`, 'success');
+    }
+
+    function vacateSpot() {
+      const spotId = parseInt(document.getElementById('form-spot-id').value);
+      if (confirm(`¿Estás seguro de liberar la plaza #${spotId}? Se borrarán los datos del inquilino.`)) {
+        document.getElementById('form-is-occupied').checked = false;
+        toggleOccupiedFields(false);
+        saveSpot(new Event('submit'));
+        showToast(`Plaza #${spotId} libre y disponible`, 'info');
+      }
+    }
+
+    /* ==========================================
+       ESTADÍSTICAS Y WIDGET DEL PASILLO CENTRAL
+       ========================================== */
+    function updateDashboardStats() {
+      const totalOccupied = garageData.filter(s => s.occupied || s.isOccupied).length;
+      const totalFree = TOTAL_SPOTS - totalOccupied;
+
+      const saldoActual = paymentsLedger
+        .filter(p => p.estado === 'Pagado')
+        .reduce((sum, p) => sum + (parseFloat(p.cuota) || 0), 0);
+
+      const saldoEstimado = paymentsLedger
+        .reduce((sum, p) => sum + (parseFloat(p.cuota) || 0), 0);
+
+      const collected = garageData
+        .filter(s => (s.occupied || s.isOccupied) && (s.isPaid || s.paymentStatus === 'paid'))
+        .reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+
+      const expected = garageData
+        .filter(s => s.occupied || s.isOccupied)
+        .reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+
+      const pendingList = garageData.filter(s => (s.occupied || s.isOccupied) && !(s.isPaid || s.paymentStatus === 'paid'));
+      const pendingCount = pendingList.length;
+      const pendingAmount = pendingList.reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+
+      const elemSaldoActual = document.getElementById('stat-saldo-actual');
+      const elemSaldoEstimado = document.getElementById('stat-saldo-estimado');
+      
+      // Uso exclusivo de punto de millar en S. Actual y S. Estimado
+      if (elemSaldoActual) elemSaldoActual.textContent = formatAmountWithThousands(saldoActual);
+      if (elemSaldoEstimado) elemSaldoEstimado.textContent = formatAmountWithThousands(saldoEstimado);
+
+      const elemOcupadasVal = document.getElementById('stat-ocupadas-val');
+      const elemPendientesVal = document.getElementById('stat-pendientes-val');
+      if (elemOcupadasVal) elemOcupadasVal.textContent = `${totalOccupied} / ${totalFree}`;
+      if (elemPendientesVal) elemPendientesVal.textContent = `${pendingCount}`;
+
+      document.getElementById('stat-collected').textContent = formatAmount(collected);
+      document.getElementById('stat-pending-amount').textContent = formatAmount(pendingAmount);
+      document.getElementById('stat-expected').textContent = `Estimado: ${formatAmount(expected)}`;
+
+      updateCorridorWidget();
+    }
+
+    function updateCorridorWidget() {
+      const elemDate = document.getElementById('corridor-date');
+      if (elemDate) {
+        const today = new Date();
+        const options = { day: 'numeric', month: 'long', year: 'numeric' };
+        elemDate.textContent = today.toLocaleDateString('es-ES', options);
+      }
+
+      const collected = garageData
+        .filter(s => (s.occupied || s.isOccupied) && (s.isPaid || s.paymentStatus === 'paid'))
+        .reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+
+      const pendingAmount = garageData
+        .filter(s => (s.occupied || s.isOccupied) && !(s.isPaid || s.paymentStatus === 'paid'))
+        .reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+
+      const totalExpected = collected + pendingAmount;
+
+      const paidSegment = document.getElementById('donut-segment-paid');
+      const pendingSegment = document.getElementById('donut-segment-pending');
+      const percentageText = document.getElementById('donut-percentage-text');
+
+      if (paidSegment && pendingSegment) {
+        if (totalExpected > 0) {
+          const paidPct = Math.round((collected / totalExpected) * 100);
+          const pendingPct = 100 - paidPct;
+
+          paidSegment.setAttribute('stroke-dasharray', `${paidPct}, 100`);
+          pendingSegment.setAttribute('stroke-dasharray', `${pendingPct}, 100`);
+          pendingSegment.setAttribute('stroke-dashoffset', `-${paidPct}`);
+
+          if (percentageText) percentageText.textContent = `${paidPct}%`;
+        } else {
+          paidSegment.setAttribute('stroke-dasharray', `0, 100`);
+          pendingSegment.setAttribute('stroke-dasharray', `0, 100`);
+          if (percentageText) percentageText.textContent = `0%`;
+        }
+      }
+
+      const elemSaldoCorridor = document.getElementById('corridor-saldo-actual');
+      if (elemSaldoCorridor) {
+        const saldoActual = paymentsLedger
+          .filter(p => p.estado === 'Pagado')
+          .reduce((sum, p) => sum + (parseFloat(p.cuota) || 0), 0);
+        // Uso exclusivo de punto de millar en la cifra bajo el gráfico del plano
+        elemSaldoCorridor.textContent = formatAmountWithThousands(saldoActual);
+      }
+    }
+
+    /* ==========================================
+       CIERRE DE MES Y OPERACIONES LOCALES CSV
+       ========================================== */
+    function procesoCierreMes() {
+      if (!confirm("¿Deseas ejecutar el Cierre de Mes?\n\n1. Se memorizará el Saldo Actual.\n2. Se borrarán los movimientos PAGADOS.\n3. Se cambiará el estado de los clientes a 'Pendiente'.\n4. Se creará el asiento de apertura del nuevo mes.")) {
+        return;
+      }
+
+      const saldoMemorizado = paymentsLedger
+        .filter(p => p.estado === 'Pagado')
+        .reduce((sum, p) => sum + (parseFloat(p.cuota) || 0), 0);
+
+      const numMes = prompt("Introduce el número del nuevo mes (1 al 12):", new Date().getMonth() + 1);
+      if (!numMes || isNaN(numMes) || numMes < 1 || numMes > 12) {
+        showToast("Número de mes no válido. Operación cancelada.", "info");
+        return;
+      }
+
+      const mesFormatted = String(numMes).padStart(2, '0');
+      const year = new Date().getFullYear();
+      const fechaApertura = `${year}-${mesFormatted}-01`;
+
+      garageData.forEach(spot => {
+        if (spot.occupied || spot.isOccupied) {
+          spot.isPaid = false;
+          spot.paymentStatus = 'pending';
+        }
+      });
+      saveSpotsDataLocally();
+
+      // Conservar los movimientos PENDIENTES
+      paymentsLedger = paymentsLedger.filter(p => p.estado !== 'Pagado');
+
+      const asientoApertura = {
+        id: "pay_" + Date.now() + "_aperturas",
+        fecha: fechaApertura,
+        tipo: "Ingreso",
+        categoria: "Traspaso",
+        concepto: "Apertura",
+        nombreCompleto: "Banco",
+        nombre: "Banco",
+        cuota: saldoMemorizado,
+        estado: "Pagado"
+      };
+
+      paymentsLedger.unshift(asientoApertura);
+      savePaymentsDataLocally();
+
+      renderGrid();
+      renderTable();
+      renderPaymentsLedger();
+      updateCorridorWidget();
+
+      showToast(`Cierre completado. Asiento de apertura generado (${formatAmount(saldoMemorizado)})`, "success");
+    }
+
+    function exportCSV(type = 'spots') {
+      let csvLines = [];
+      let filename = "";
+
+      if (type === 'payments') {
+        const headers = ["Fecha", "Tipo", "Categoria", "Concepto", "NOMBRE COMPLETO", "IMPORTE", "ESTADO DEL PAGO"];
+        csvLines.push(headers.join(";"));
+
+        paymentsLedger.forEach(p => {
+          const valCuota = parseFloat(p.cuota) || 0;
+          const row = [
+            formatDisplayDate(p.fecha) || '',
+            p.tipo || 'Ingreso',
+            p.categoria || 'Alquiler Plaza',
+            p.concepto || '',
+            p.nombreCompleto || p.nombre || '',
+            formatAmount(valCuota),
+            p.estado || 'Pagado'
+          ];
+          csvLines.push(row.join(";"));
+        });
+        filename = `garaje_registro_pagos_${new Date().toISOString().split('T')[0]}.csv`;
+      } else {
+        const headers = ["Plaza Interna", "Plaza Visual", "Ocupado", "Nombre Inquilino", "Alias", "NIF", "Telefono", "Matricula", "Modelo", "Cuota", "Estado Pago", "Fecha Inicio", "Notas"];
+        csvLines.push(headers.join(";"));
+
+        garageData.forEach(s => {
+          const valPrice = parseFloat(s.price) || 0;
+          const isOcc = s.occupied || s.isOccupied;
+          const isPaid = s.isPaid || s.paymentStatus === 'paid';
+          const row = [
+            s.id,
+            s.spotNumber || `${s.id}`,
+            isOcc ? 'SI' : 'NO',
+            s.tenantName || '',
+            s.tenantAlias || '',
+            s.tenantNif || '',
+            s.tenantPhone || '',
+            s.carPlate || '',
+            s.carModel || '',
+            formatAmount(valPrice),
+            isPaid ? 'Pagado' : 'Pendiente',
+            formatDisplayDate(s.startDate) || '',
+            s.notes || ''
+          ];
+          csvLines.push(row.join(";"));
+        });
+        filename = `garaje_plazas_${new Date().toISOString().split('T')[0]}.csv`;
+      }
+
+      const csvContent = "\uFEFF" + csvLines.join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast(`CSV exportado (${filename})`, 'success');
+    }
+
+    function parseAmountString(str) {
+      if (!str) return 0;
+      let sanitized = String(str).replace(/"/g, '').trim();
+      if (sanitized.includes(',')) {
+        sanitized = sanitized.replace(/\./g, '').replace(',', '.');
+      }
+      const val = parseFloat(sanitized);
+      return isNaN(val) ? 0 : val;
+    }
+
+    // Formato estándar sin punto de miles (ej: 1450,00)
+    function formatAmount(num) {
+      const val = parseFloat(num) || 0;
+      return val.toFixed(2).replace('.', ',');
+    }
+
+    // Formato con separador de miles exclusivo para saldos destacados (ej: 1.450,00)
+    function formatAmountWithThousands(num) {
+      const val = parseFloat(num) || 0;
+      const parts = val.toFixed(2).split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      return parts.join(',');
+    }
+
+    function appendToExistingCSV() {
+      if (paymentsLedger.length === 0) {
+        showToast("No hay movimientos en el registro para anexar", "info");
+        return;
+      }
+
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.csv';
+
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          try {
+            let existingContent = evt.target.result || '';
+            
+            if (existingContent.length > 0 && !existingContent.endsWith('\n') && !existingContent.endsWith('\r')) {
+              existingContent += '\n';
+            }
+
+            let newLines = [];
+            paymentsLedger.forEach(p => {
+              const valCuota = parseFloat(p.cuota) || 0;
+              const row = [
+                formatDisplayDate(p.fecha) || '',
+                p.tipo || 'Ingreso',
+                p.categoria || 'Alquiler Plaza',
+                p.concepto || '',
+                p.nombreCompleto || p.nombre || '',
+                formatAmount(valCuota),
+                p.estado || 'Pagado'
+              ];
+              newLines.push(row.join(";"));
+            });
+
+            const updatedCSV = existingContent + newLines.join("\n");
+            const blob = new Blob(["\uFEFF" + updatedCSV], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = file.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast(`Se han anexado ${paymentsLedger.length} movimientos a ${file.name}`, "success");
+          } catch (err) {
+            console.error(err);
+            showToast("Error al anexar las líneas al archivo CSV", "info");
+          }
+        };
+
+        reader.readAsText(file, 'UTF-8');
+      };
+
+      input.click();
+    }
+
+    function importCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          processPlazasCSV(e.target.result);
+          showToast(`Importación realizada con éxito`, 'success');
+        } catch (err) {
+          console.error(err);
+          showToast("Error al importar el archivo CSV", "info");
+        }
+        event.target.value = '';
+      };
+
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    function importPaymentsCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          processPaymentsCSV(e.target.result);
+          showToast(`Importación de movimientos completada`, 'success');
+        } catch (err) {
+          console.error(err);
+          showToast("Error al procesar el archivo CSV de pagos", "info");
+        }
+        event.target.value = '';
+      };
+
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    function parseDateToISO(dateStr) {
+      if (!dateStr) return '';
+      const clean = dateStr.trim();
+      
+      if (clean.includes('/') || (clean.includes('-') && clean.split('-')[0].length < 4)) {
+        const parts = clean.split(/[\/-]/);
+        if (parts.length === 3) {
+          const day = parts[0].padStart(2, '0');
+          const month = parts[1].padStart(2, '0');
+          const year = parts[2].length === 2 ? '20' + parts[2] : parts[2];
+          return `${year}-${month}-${day}`;
+        }
+      }
+      return clean;
+    }
+
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return '';
+      const iso = parseDateToISO(dateStr);
+      if (!iso || !iso.includes('-')) return dateStr;
+      const parts = iso.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return dateStr;
+    }
+
+    function importPaymentsBetweenDates(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const fechaInicioStr = prompt("Introduce la FECHA INICIAL (formato DD/MM/AAAA o AAAA-MM-DD):", "01/01/" + new Date().getFullYear());
+      if (!fechaInicioStr) {
+        event.target.value = '';
+        return;
+      }
+
+      const fechaFinStr = prompt("Introduce la FECHA FINAL (formato DD/MM/AAAA o AAAA-MM-DD):", formatDisplayDate(new Date().toISOString().split('T')[0]));
+      if (!fechaFinStr) {
+        event.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          processBetweenDatesContent(evt.target.result, fechaInicioStr, fechaFinStr);
+        } catch (err) {
+          console.error(err);
+          showToast("Error al filtrar e importar movimientos por fecha", "info");
+        }
+        event.target.value = '';
+      };
+
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    function parseCSVLine(line, delimiter) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === delimiter && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result.map(val => val.replace(/^"|"$/g, ''));
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    /* ==========================================
+       SISTEMA DE NOTIFICACIONES (TOAST)
+       ========================================== */
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMessage.innerText = message;
+
+      if (type === 'success') {
+        toastIcon.setAttribute('data-lucide', 'check-circle');
+        toastIcon.className = 'w-5 h-5 text-emerald-400';
+      } else {
+        toastIcon.setAttribute('data-lucide', 'info');
+        toastIcon.className = 'w-5 h-5 text-blue-400';
+      }
+
+      lucide.createIcons();
+
+      toast.classList.remove('hidden', 'translate-y-2');
+
+      setTimeout(() => {
+        toast.classList.add('hidden', 'translate-y-2');
+      }, 3000);
+    }
+
+    // FUNCIÓN ACTUALIZAR CON VACIADO DE MOVIMIENTOS
+    async function actualizarTodoDesdeNube() {
+      try {
+        // 1. IMPORTAR PLAZAS DESDE GITHUB
+        const contentPlazas = await fetchGistFile("plazas.csv");
+        if (contentPlazas) {
+          processPlazasCSV(contentPlazas);
+        }
+
+        // 2. BORRAR/VACIAR MOVIMIENTOS LOCALES
+        paymentsLedger = []; // Vacía el array real de movimientos
+        savePaymentsDataLocally(); // Guarda la lista vacía en el almacenamiento local
+        renderPaymentsLedger(); // Refresca la tabla de movimientos a cero
+
+        // 3. IMPORTAR MOVIMIENTOS DESDE GITHUB
+        const contentMovimientos = await fetchGistFile("movimientos.csv");
+        if (contentMovimientos) {
+          processPaymentsCSV(contentMovimientos);
+        }
+
+        // 4. NOTIFICACIÓN Y REFRESCAR PANTALLA
+        if (typeof showToast === 'function') {
+          showToast("¡Plazas y Movimientos actualizados desde GitHub!", "success");
+        }
+        if (typeof updateDashboardStats === 'function') {
+          updateDashboardStats();
+        }
+      } catch (error) {
+        console.error("Error al actualizar desde la nube:", error);
+        if (typeof showToast === 'function') {
+          showToast("Error al sincronizar con GitHub", "error");
+        }
+      }
+    }
+
+    /* ==========================================
+       INICIALIZACIÓN AL CARGAR LA PÁGINA
+       ========================================== */
+    window.onload = function() {
+      loadInitialData();
+      renderGrid();
+      renderTable();
+      renderPaymentsLedger();
+      updateCorridorWidget();
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>
