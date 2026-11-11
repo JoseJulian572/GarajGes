@@ -2203,16 +2203,6 @@
 async function actualizarTodoDesdeNube() {
   try {
 
-// 2. BORRAR/VACIAR REGISTRO DE PAGOS Y MOVIMIENTOS COMPLETO
-payments = []; // Vacía la lista en memoria
-if (typeof savePayments === 'function') savePayments(); // Guarda el estado vacío en el almacenamiento (localStorage)
-if (typeof renderPayments === 'function') renderPayments(); // Refresca y vacía la tabla/lista de movimientos visualmente
-
-
-
-
-
-    /*
     // 1. IMPORTAR PLAZAS DESDE GITHUB
     const contentPlazas = await fetchGistFile("plazas.csv");
     if (contentPlazas) {
@@ -2242,7 +2232,7 @@ if (typeof renderPayments === 'function') renderPayments(); // Refresca y vacía
   }
 }     
 
-    */
+    
     
     
 /*
