@@ -73,14 +73,14 @@
 </button>
 <!-- nuevo boton de actualizar -->      
         <label onclick="handleImportClick(event)" class="cursor-pointer flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition" title="Importar fichero de Plazas">
-          <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i>
-          <span class="hidden sm:inline">Importar</span> Plazas CSV
+          <i data-lucide="download" class="w-4 h-4 text-slate-400"></i>
+          <span class="hidden sm:inline">Importar</span> Plazas
           <input type="file" id="csv-file-input" accept=".csv" class="hidden" onchange="importCSV(event)">
         </label>
         
         <button onclick="handleExportClick('spots')" class="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition" title="Exportar fichero de Plazas CSV">
-          <i data-lucide="download" class="w-4 h-4 text-slate-400"></i>
-          <span class="hidden sm:inline">Exportar</span> Plazas CSV
+          <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i>
+          <span class="hidden sm:inline">Exportar</span> Plazas
         </button>
 
         <!-- nuevo boton de salir (exporta plazas y movimientos a github) -->
