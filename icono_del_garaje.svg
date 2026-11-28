@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Círculo verde esmeralda -->
+  <circle cx="256" cy="256" r="248" fill="#047857"/>
+  <!-- Silueta minimalista de coche de perfil en blanco -->
+  <g fill="none" stroke="#ffffff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M360 315h34a34 34 0 0 0 34-34v-42a34 34 0 0 0-34-34h-22l-38-68a34 34 0 0 0-30-17H196a34 34 0 0 0-28 15l-44 70h-16a34 34 0 0 0-34 34v42a34 34 0 0 0 34 34h26"/>
+    <circle cx="178" cy="315" r="36"/>
+    <path d="M214 315h94"/>
+    <circle cx="344" cy="315" r="36"/>
+  </g>
+</svg>
